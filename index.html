@@ -218,9 +218,11 @@
 
     document.getElementById('tanggal').addEventListener('change', function (e) {
       state.tanggal = e.target.value;
+      render();
     });
     document.getElementById('waktu').addEventListener('input', function (e) {
       state.waktuPertandingan = e.target.value;
+      render();
     });
     document.getElementById('tim-biru').addEventListener('click', function () {
       state.tim = 'biru';
@@ -293,6 +295,7 @@
     });
     document.getElementById('catatan').addEventListener('input', function (e) {
       state.catatan = e.target.value;
+      render();
     });
 
     if (navigator.share) {
