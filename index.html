@@ -163,6 +163,21 @@
     </div>
   </div>
 
+  <h2>Post-Match</h2>
+  <div class="bar">
+    <label>Skor Biru <input type="number" id="skor-biru" value="0" min="0"></label>
+    <label>Skor Merah <input type="number" id="skor-merah" value="0" min="0"></label>
+  </div>
+  <div class="bar">
+    <span>Hasil: <strong id="hasil-value">-</strong></span>
+    <button id="hasil-menang">Paksa Menang</button>
+    <button id="hasil-kalah">Paksa Kalah</button>
+    <button id="hasil-clear">Clear Override</button>
+  </div>
+  <div class="bar">
+    <textarea id="catatan" rows="3" placeholder="Catatan: robotnya gimana"></textarea>
+  </div>
+
   <script src="app.js"></script>
   <script>
     var state = RobotLog.createInitialState();
@@ -187,6 +202,11 @@
       document.getElementById('r1-tongkat-toggle').textContent = state.r1.tongkat.running ? 'Stop' : 'Start';
       document.getElementById('r1-assembly-toggle').textContent = state.r1.assembly.running ? 'Stop' : 'Start';
       document.getElementById('r2-spearhead-toggle').textContent = state.r2.spearhead.running ? 'Stop' : 'Start';
+      document.getElementById('skor-biru').value = state.skorBiru;
+      document.getElementById('skor-merah').value = state.skorMerah;
+      var hasil = RobotLog.resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
+      document.getElementById('hasil-value').textContent =
+        hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : '(belum ditentukan)');
     }
 
     document.getElementById('tanggal').addEventListener('change', function (e) {
@@ -243,6 +263,30 @@
     wireStopwatch('r1-tongkat', 'r1', 'tongkat');
     wireStopwatch('r1-assembly', 'r1', 'assembly');
     wireStopwatch('r2-spearhead', 'r2', 'spearhead');
+
+    document.getElementById('skor-biru').addEventListener('input', function (e) {
+      state.skorBiru = parseInt(e.target.value, 10) || 0;
+      render();
+    });
+    document.getElementById('skor-merah').addEventListener('input', function (e) {
+      state.skorMerah = parseInt(e.target.value, 10) || 0;
+      render();
+    });
+    document.getElementById('hasil-menang').addEventListener('click', function () {
+      state.hasilOverride = 'menang';
+      render();
+    });
+    document.getElementById('hasil-kalah').addEventListener('click', function () {
+      state.hasilOverride = 'kalah';
+      render();
+    });
+    document.getElementById('hasil-clear').addEventListener('click', function () {
+      state.hasilOverride = null;
+      render();
+    });
+    document.getElementById('catatan').addEventListener('input', function (e) {
+      state.catatan = e.target.value;
+    });
 
     function tickLoop() {
       var now = Date.now();
