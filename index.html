@@ -213,6 +213,7 @@
       var hasil = RobotLog.resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
       document.getElementById('hasil-value').textContent =
         hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : '(belum ditentukan)');
+      saveDraft();
     }
 
     document.getElementById('tanggal').addEventListener('change', function (e) {
@@ -301,6 +302,8 @@
     document.getElementById('generate-btn').addEventListener('click', function () {
       var text = RobotLog.formatTemplate(state, Date.now());
       document.getElementById('output').value = text;
+      localStorage.removeItem(DRAFT_KEY);
+      document.getElementById('draft-banner').style.display = 'none';
     });
 
     document.getElementById('copy-btn').addEventListener('click', function () {
@@ -332,7 +335,19 @@
       requestAnimationFrame(tickLoop);
     }
 
-    state.tanggal = todayIso();
+    var DRAFT_KEY = 'robot-match-draft';
+    var restored = RobotLog.deserializeDraft(localStorage.getItem(DRAFT_KEY));
+    if (restored) {
+      state = restored;
+      document.getElementById('draft-banner').style.display = 'block';
+    } else {
+      state.tanggal = todayIso();
+    }
+
+    function saveDraft() {
+      localStorage.setItem(DRAFT_KEY, RobotLog.serializeDraft(state));
+    }
+
     render();
     tickLoop();
   </script>
