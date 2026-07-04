@@ -188,7 +188,7 @@ git commit -m "feat: add state model and counter logic"
 - Produces: `RobotLog.stopStopwatch(sw, now)` → new stopwatch object
 - Produces: `RobotLog.resetStopwatch()` → new stopwatch object, all zeroed
 - Produces: `RobotLog.setStopwatchSeconds(sw, seconds)` → new stopwatch object, paused, `elapsedMs = round(seconds*1000)`, floors at 0
-- Produces: `RobotLog.getElapsedSeconds(sw, now)` → `number`, rounded seconds, accounts for still-running state
+- Produces: `RobotLog.getElapsedSeconds(sw, now)` → `number`, floored seconds (only fully-elapsed seconds count, matches a physical stopwatch), accounts for still-running state. Note: implementation uses `Math.floor`, not `Math.round` — confirmed during Task 2 review since `Math.round` would break the 5.5s boundary test.
 
 - [ ] **Step 1: Write the failing tests**
 
