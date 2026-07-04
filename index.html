@@ -178,6 +178,14 @@
     <textarea id="catatan" rows="3" placeholder="Catatan: robotnya gimana"></textarea>
   </div>
 
+  <h2>Output</h2>
+  <div class="bar">
+    <button id="generate-btn">Generate</button>
+    <button id="copy-btn">Copy</button>
+    <button id="share-btn" style="display:none;">Share</button>
+  </div>
+  <textarea id="output" rows="20" readonly></textarea>
+
   <script src="app.js"></script>
   <script>
     var state = RobotLog.createInitialState();
@@ -284,6 +292,36 @@
     });
     document.getElementById('catatan').addEventListener('input', function (e) {
       state.catatan = e.target.value;
+    });
+
+    if (navigator.share) {
+      document.getElementById('share-btn').style.display = '';
+    }
+
+    document.getElementById('generate-btn').addEventListener('click', function () {
+      var text = RobotLog.formatTemplate(state, Date.now());
+      document.getElementById('output').value = text;
+    });
+
+    document.getElementById('copy-btn').addEventListener('click', function () {
+      var output = document.getElementById('output');
+      var text = output.value;
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(function () {
+          output.select();
+          document.execCommand('copy');
+        });
+      } else {
+        output.select();
+        document.execCommand('copy');
+      }
+    });
+
+    document.getElementById('share-btn').addEventListener('click', function () {
+      var text = document.getElementById('output').value;
+      if (!text) return;
+      navigator.share({ text: text }).catch(function () {});
     });
 
     function tickLoop() {
