@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Robot Match Logger</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    padding: 12px;
+    background: #111;
+    color: #eee;
+  }
+  h2 { font-size: 16px; margin: 16px 0 8px; }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  input[type="date"], input[type="text"], input[type="number"] {
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #222;
+    color: #eee;
+  }
+  button {
+    font-size: 16px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #333;
+    color: #eee;
+    min-height: 44px;
+    min-width: 44px;
+  }
+  button[aria-pressed="true"] { background: #4a7; color: #002; font-weight: bold; }
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .robot-card {
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 8px;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .stat-row .label { font-size: 13px; flex: 1; }
+  .count-value, .time-value {
+    font-size: 20px;
+    font-weight: bold;
+    min-width: 2.5em;
+    text-align: center;
+  }
+  textarea {
+    width: 100%;
+    font-size: 14px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #222;
+    color: #eee;
+  }
+  #draft-banner {
+    display: none;
+    background: #654;
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+  <div id="draft-banner">Draft match sebelumnya dipulihkan.</div>
+
+  <h2>Info Match</h2>
+  <div class="bar">
+    <input type="date" id="tanggal">
+    <button id="tim-biru" aria-pressed="false">Tim Biru</button>
+    <button id="tim-merah" aria-pressed="false">Tim Merah</button>
+    <input type="text" id="waktu" value="3 menit">
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    var state = RobotLog.createInitialState();
+
+    function todayIso() {
+      var d = new Date();
+      var y = d.getFullYear();
+      var m = String(d.getMonth() + 1).padStart(2, '0');
+      var day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+
+    function render() {
+      document.getElementById('tanggal').value = state.tanggal || '';
+      document.getElementById('waktu').value = state.waktuPertandingan;
+      document.getElementById('tim-biru').setAttribute('aria-pressed', state.tim === 'biru');
+      document.getElementById('tim-merah').setAttribute('aria-pressed', state.tim === 'merah');
+    }
+
+    document.getElementById('tanggal').addEventListener('change', function (e) {
+      state.tanggal = e.target.value;
+    });
+    document.getElementById('waktu').addEventListener('input', function (e) {
+      state.waktuPertandingan = e.target.value;
+    });
+    document.getElementById('tim-biru').addEventListener('click', function () {
+      state.tim = 'biru';
+      render();
+    });
+    document.getElementById('tim-merah').addEventListener('click', function () {
+      state.tim = 'merah';
+      render();
+    });
+
+    state.tanggal = todayIso();
+    render();
+  </script>
+</body>
+</html>
