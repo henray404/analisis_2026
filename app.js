@@ -117,6 +117,19 @@
     ].join('\n');
   }
 
+  function serializeDraft(state) {
+    return JSON.stringify(state);
+  }
+
+  function deserializeDraft(json) {
+    if (!json) return null;
+    try {
+      return JSON.parse(json);
+    } catch (e) {
+      return null;
+    }
+  }
+
   var RobotLog = {
     createInitialState: createInitialState,
     incrementCount: incrementCount,
@@ -129,7 +142,9 @@
     computeHasil: computeHasil,
     resolveHasil: resolveHasil,
     formatTanggalIndonesia: formatTanggalIndonesia,
-    formatTemplate: formatTemplate
+    formatTemplate: formatTemplate,
+    serializeDraft: serializeDraft,
+    deserializeDraft: deserializeDraft
   };
 
   root.RobotLog = RobotLog;

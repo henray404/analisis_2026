@@ -182,3 +182,20 @@ test('formatTemplate shows a placeholder Hasil when scores tie and no override',
   const text = RobotLog.formatTemplate(state, 0);
   assert.match(text, /Hasil: \(belum ditentukan\)/);
 });
+
+test('serializeDraft/deserializeDraft round-trip a state object', () => {
+  const state = RobotLog.createInitialState();
+  state.r1.kotak = 3;
+  const json = RobotLog.serializeDraft(state);
+  assert.equal(typeof json, 'string');
+  assert.deepEqual(RobotLog.deserializeDraft(json), state);
+});
+
+test('deserializeDraft returns null for empty input', () => {
+  assert.equal(RobotLog.deserializeDraft(null), null);
+  assert.equal(RobotLog.deserializeDraft(''), null);
+});
+
+test('deserializeDraft returns null for invalid JSON', () => {
+  assert.equal(RobotLog.deserializeDraft('{not json'), null);
+});
