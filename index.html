@@ -198,6 +198,12 @@
       return y + '-' + m + '-' + day;
     }
 
+    function populateInputs() {
+      document.getElementById('skor-biru').value = state.skorBiru;
+      document.getElementById('skor-merah').value = state.skorMerah;
+      document.getElementById('catatan').value = state.catatan;
+    }
+
     function render() {
       document.getElementById('tanggal').value = state.tanggal || '';
       document.getElementById('waktu').value = state.waktuPertandingan;
@@ -346,6 +352,7 @@
     } else {
       state.tanggal = todayIso();
     }
+    populateInputs();
 
     function saveDraft() {
       localStorage.setItem(DRAFT_KEY, RobotLog.serializeDraft(state));

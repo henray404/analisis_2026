@@ -199,3 +199,15 @@ test('deserializeDraft returns null for empty input', () => {
 test('deserializeDraft returns null for invalid JSON', () => {
   assert.equal(RobotLog.deserializeDraft('{not json'), null);
 });
+
+test('formatTemplate does not throw when state.tim is null (no Tim selected yet)', () => {
+  const state = {
+    tanggal: '2026-07-04', tim: null, waktuPertandingan: '3 menit',
+    r1: { kotak: 0, retry: 0, tongkat: { running: false, startedAt: null, elapsedMs: 0 }, assembly: { running: false, startedAt: null, elapsedMs: 0 } },
+    r2: { kotak: 0, retry: 0, spearhead: { running: false, startedAt: null, elapsedMs: 0 } },
+    skorBiru: 0, skorMerah: 0, hasilOverride: null, catatan: ''
+  };
+  assert.doesNotThrow(() => RobotLog.formatTemplate(state, 0));
+  const text = RobotLog.formatTemplate(state, 0);
+  assert.match(text, /^RICHIE: Tim $/m);
+});

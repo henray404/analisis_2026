@@ -276,7 +276,7 @@ In `app.js`, add these functions above the `var RobotLog = {` line:
 
   function getElapsedSeconds(sw, now) {
     var ms = sw.running ? sw.elapsedMs + (now - sw.startedAt) : sw.elapsedMs;
-    return Math.round(ms / 1000);
+    return Math.floor(ms / 1000);
   }
 ```
 
