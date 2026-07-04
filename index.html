@@ -202,8 +202,6 @@
       document.getElementById('r1-tongkat-toggle').textContent = state.r1.tongkat.running ? 'Stop' : 'Start';
       document.getElementById('r1-assembly-toggle').textContent = state.r1.assembly.running ? 'Stop' : 'Start';
       document.getElementById('r2-spearhead-toggle').textContent = state.r2.spearhead.running ? 'Stop' : 'Start';
-      document.getElementById('skor-biru').value = state.skorBiru;
-      document.getElementById('skor-merah').value = state.skorMerah;
       var hasil = RobotLog.resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
       document.getElementById('hasil-value').textContent =
         hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : '(belum ditentukan)');
