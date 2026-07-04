@@ -94,6 +94,75 @@
     <input type="text" id="waktu" value="3 menit">
   </div>
 
+  <h2>Live Tracking</h2>
+  <div class="columns">
+    <div class="robot-card">
+      <strong>Robot 1 (R1)</strong>
+
+      <div class="stat-row">
+        <span class="label">Kotak</span>
+        <button id="r1-kotak-minus">-1</button>
+        <span class="count-value" id="r1-kotak-value">0</span>
+        <button id="r1-kotak-plus">+1</button>
+      </div>
+
+      <div class="stat-row">
+        <span class="label">Tongkat (detik)</span>
+        <span class="time-value" id="r1-tongkat-value">0</span>
+        <button id="r1-tongkat-toggle">Start</button>
+        <button id="r1-tongkat-reset">Reset</button>
+      </div>
+      <div class="stat-row">
+        <input type="number" id="r1-tongkat-manual" placeholder="edit manual (detik)">
+      </div>
+
+      <div class="stat-row">
+        <span class="label">Assembly (detik)</span>
+        <span class="time-value" id="r1-assembly-value">0</span>
+        <button id="r1-assembly-toggle">Start</button>
+        <button id="r1-assembly-reset">Reset</button>
+      </div>
+      <div class="stat-row">
+        <input type="number" id="r1-assembly-manual" placeholder="edit manual (detik)">
+      </div>
+
+      <div class="stat-row">
+        <span class="label">Retry</span>
+        <button id="r1-retry-minus">-1</button>
+        <span class="count-value" id="r1-retry-value">0</span>
+        <button id="r1-retry-plus">+1</button>
+      </div>
+    </div>
+
+    <div class="robot-card">
+      <strong>Robot 2 (R2)</strong>
+
+      <div class="stat-row">
+        <span class="label">Kotak</span>
+        <button id="r2-kotak-minus">-1</button>
+        <span class="count-value" id="r2-kotak-value">0</span>
+        <button id="r2-kotak-plus">+1</button>
+      </div>
+
+      <div class="stat-row">
+        <span class="label">Spearhead (detik)</span>
+        <span class="time-value" id="r2-spearhead-value">0</span>
+        <button id="r2-spearhead-toggle">Start</button>
+        <button id="r2-spearhead-reset">Reset</button>
+      </div>
+      <div class="stat-row">
+        <input type="number" id="r2-spearhead-manual" placeholder="edit manual (detik)">
+      </div>
+
+      <div class="stat-row">
+        <span class="label">Retry</span>
+        <button id="r2-retry-minus">-1</button>
+        <span class="count-value" id="r2-retry-value">0</span>
+        <button id="r2-retry-plus">+1</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
   <script>
     var state = RobotLog.createInitialState();
@@ -111,6 +180,13 @@
       document.getElementById('waktu').value = state.waktuPertandingan;
       document.getElementById('tim-biru').setAttribute('aria-pressed', state.tim === 'biru');
       document.getElementById('tim-merah').setAttribute('aria-pressed', state.tim === 'merah');
+      document.getElementById('r1-kotak-value').textContent = state.r1.kotak;
+      document.getElementById('r1-retry-value').textContent = state.r1.retry;
+      document.getElementById('r2-kotak-value').textContent = state.r2.kotak;
+      document.getElementById('r2-retry-value').textContent = state.r2.retry;
+      document.getElementById('r1-tongkat-toggle').textContent = state.r1.tongkat.running ? 'Stop' : 'Start';
+      document.getElementById('r1-assembly-toggle').textContent = state.r1.assembly.running ? 'Stop' : 'Start';
+      document.getElementById('r2-spearhead-toggle').textContent = state.r2.spearhead.running ? 'Stop' : 'Start';
     }
 
     document.getElementById('tanggal').addEventListener('change', function (e) {
@@ -128,8 +204,57 @@
       render();
     });
 
+    function wireCounter(prefix, robotKey, field) {
+      document.getElementById(prefix + '-plus').addEventListener('click', function () {
+        state[robotKey][field] = RobotLog.incrementCount(state[robotKey][field]);
+        render();
+      });
+      document.getElementById(prefix + '-minus').addEventListener('click', function () {
+        state[robotKey][field] = RobotLog.decrementCount(state[robotKey][field]);
+        render();
+      });
+    }
+
+    function wireStopwatch(prefix, robotKey, field) {
+      document.getElementById(prefix + '-toggle').addEventListener('click', function () {
+        var sw = state[robotKey][field];
+        state[robotKey][field] = sw.running
+          ? RobotLog.stopStopwatch(sw, Date.now())
+          : RobotLog.startStopwatch(sw, Date.now());
+        render();
+      });
+      document.getElementById(prefix + '-reset').addEventListener('click', function () {
+        state[robotKey][field] = RobotLog.resetStopwatch();
+        render();
+      });
+      document.getElementById(prefix + '-manual').addEventListener('change', function (e) {
+        var seconds = parseFloat(e.target.value);
+        if (isNaN(seconds)) return;
+        state[robotKey][field] = RobotLog.setStopwatchSeconds(state[robotKey][field], seconds);
+        e.target.value = '';
+        render();
+      });
+    }
+
+    wireCounter('r1-kotak', 'r1', 'kotak');
+    wireCounter('r1-retry', 'r1', 'retry');
+    wireCounter('r2-kotak', 'r2', 'kotak');
+    wireCounter('r2-retry', 'r2', 'retry');
+    wireStopwatch('r1-tongkat', 'r1', 'tongkat');
+    wireStopwatch('r1-assembly', 'r1', 'assembly');
+    wireStopwatch('r2-spearhead', 'r2', 'spearhead');
+
+    function tickLoop() {
+      var now = Date.now();
+      document.getElementById('r1-tongkat-value').textContent = RobotLog.getElapsedSeconds(state.r1.tongkat, now);
+      document.getElementById('r1-assembly-value').textContent = RobotLog.getElapsedSeconds(state.r1.assembly, now);
+      document.getElementById('r2-spearhead-value').textContent = RobotLog.getElapsedSeconds(state.r2.spearhead, now);
+      requestAnimationFrame(tickLoop);
+    }
+
     state.tanggal = todayIso();
     render();
+    tickLoop();
   </script>
 </body>
 </html>
