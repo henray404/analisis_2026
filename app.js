@@ -68,6 +68,55 @@
     return computeHasil(tim, skorBiru, skorMerah);
   }
 
+  var HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  var BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli',
+    'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+  function formatTanggalIndonesia(isoDateStr) {
+    var parts = isoDateStr.split('-');
+    var y = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10) - 1;
+    var d = parseInt(parts[2], 10);
+    var date = new Date(y, m, d);
+    return HARI[date.getDay()] + ', ' + d + ' ' + BULAN[m] + ' ' + y;
+  }
+
+  function capitalize(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }
+
+  function formatTemplate(state, now) {
+    var tanggalStr = formatTanggalIndonesia(state.tanggal);
+    var hasil = resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
+    var hasilStr = hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : '(belum ditentukan)');
+    var tongkatSec = getElapsedSeconds(state.r1.tongkat, now);
+    var assemblySec = getElapsedSeconds(state.r1.assembly, now);
+    var spearheadSec = getElapsedSeconds(state.r2.spearhead, now);
+
+    return [
+      'Hasil Latihan Match _',
+      'Tanggal: ' + tanggalStr,
+      '',
+      'RICHIE: Tim ' + capitalize(state.tim),
+      'Skor Akhir: Tim Biru (' + state.skorBiru + ') - Tim Merah (' + state.skorMerah + ')',
+      'Hasil: ' + hasilStr,
+      'Waktu pertandingan: Game ' + state.waktuPertandingan,
+      '',
+      'statistik Robot 1 (R1)',
+      'kotak: ' + state.r1.kotak,
+      'tongkat: ' + tongkatSec,
+      'assembly: ' + assemblySec,
+      'retry: ' + state.r1.retry,
+      '',
+      'Statistik Robot 2 (R2)',
+      'Kotak: ' + state.r2.kotak,
+      'Spearhead: ' + spearheadSec,
+      'Retry: ' + state.r2.retry,
+      '',
+      'Catatan: ' + (state.catatan || '')
+    ].join('\n');
+  }
+
   var RobotLog = {
     createInitialState: createInitialState,
     incrementCount: incrementCount,
@@ -78,7 +127,9 @@
     setStopwatchSeconds: setStopwatchSeconds,
     getElapsedSeconds: getElapsedSeconds,
     computeHasil: computeHasil,
-    resolveHasil: resolveHasil
+    resolveHasil: resolveHasil,
+    formatTanggalIndonesia: formatTanggalIndonesia,
+    formatTemplate: formatTemplate
   };
 
   root.RobotLog = RobotLog;

@@ -118,3 +118,67 @@ test('resolveHasil: override = "" (falsy) falls through to computeHasil', () => 
 test('resolveHasil: override = undefined (falsy) falls through to computeHasil', () => {
   assert.equal(RobotLog.resolveHasil('biru', 10, 5, undefined), 'menang');
 });
+
+test('formatTanggalIndonesia formats an ISO date in Indonesian', () => {
+  assert.equal(RobotLog.formatTanggalIndonesia('2026-07-04'), 'Sabtu, 4 Juli 2026');
+  assert.equal(RobotLog.formatTanggalIndonesia('2026-01-01'), 'Kamis, 1 Januari 2026');
+});
+
+test('formatTemplate produces the exact template with real values substituted', () => {
+  const state = {
+    tanggal: '2026-07-04',
+    tim: 'biru',
+    waktuPertandingan: '3 menit',
+    r1: {
+      kotak: 7,
+      retry: 2,
+      tongkat: { running: false, startedAt: null, elapsedMs: 12400 },
+      assembly: { running: false, startedAt: null, elapsedMs: 45000 }
+    },
+    r2: {
+      kotak: 5,
+      retry: 1,
+      spearhead: { running: false, startedAt: null, elapsedMs: 8000 }
+    },
+    skorBiru: 20,
+    skorMerah: 15,
+    hasilOverride: null,
+    catatan: 'Robot lancar, cuma retry di kotak terakhir'
+  };
+
+  const expected = [
+    'Hasil Latihan Match _',
+    'Tanggal: Sabtu, 4 Juli 2026',
+    '',
+    'RICHIE: Tim Biru',
+    'Skor Akhir: Tim Biru (20) - Tim Merah (15)',
+    'Hasil: Menang',
+    'Waktu pertandingan: Game 3 menit',
+    '',
+    'statistik Robot 1 (R1)',
+    'kotak: 7',
+    'tongkat: 12',
+    'assembly: 45',
+    'retry: 2',
+    '',
+    'Statistik Robot 2 (R2)',
+    'Kotak: 5',
+    'Spearhead: 8',
+    'Retry: 1',
+    '',
+    'Catatan: Robot lancar, cuma retry di kotak terakhir'
+  ].join('\n');
+
+  assert.equal(RobotLog.formatTemplate(state, 0), expected);
+});
+
+test('formatTemplate shows a placeholder Hasil when scores tie and no override', () => {
+  const state = {
+    tanggal: '2026-07-04', tim: 'biru', waktuPertandingan: '3 menit',
+    r1: { kotak: 0, retry: 0, tongkat: { running: false, startedAt: null, elapsedMs: 0 }, assembly: { running: false, startedAt: null, elapsedMs: 0 } },
+    r2: { kotak: 0, retry: 0, spearhead: { running: false, startedAt: null, elapsedMs: 0 } },
+    skorBiru: 10, skorMerah: 10, hasilOverride: null, catatan: ''
+  };
+  const text = RobotLog.formatTemplate(state, 0);
+  assert.match(text, /Hasil: \(belum ditentukan\)/);
+});
