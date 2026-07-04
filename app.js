@@ -56,6 +56,18 @@
     return Math.floor(ms / 1000);
   }
 
+  function computeHasil(tim, skorBiru, skorMerah) {
+    if (skorBiru === skorMerah) return null;
+    if (tim === 'biru') return skorBiru > skorMerah ? 'menang' : 'kalah';
+    if (tim === 'merah') return skorMerah > skorBiru ? 'menang' : 'kalah';
+    return null;
+  }
+
+  function resolveHasil(tim, skorBiru, skorMerah, override) {
+    if (override) return override;
+    return computeHasil(tim, skorBiru, skorMerah);
+  }
+
   var RobotLog = {
     createInitialState: createInitialState,
     incrementCount: incrementCount,
@@ -64,7 +76,9 @@
     stopStopwatch: stopStopwatch,
     resetStopwatch: resetStopwatch,
     setStopwatchSeconds: setStopwatchSeconds,
-    getElapsedSeconds: getElapsedSeconds
+    getElapsedSeconds: getElapsedSeconds,
+    computeHasil: computeHasil,
+    resolveHasil: resolveHasil
   };
 
   root.RobotLog = RobotLog;

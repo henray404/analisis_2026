@@ -74,3 +74,31 @@ test('getElapsedSeconds adds in-flight time when running', () => {
   const sw = { running: true, startedAt: 1000, elapsedMs: 2000 };
   assert.equal(RobotLog.getElapsedSeconds(sw, 4500), 5);
 });
+
+test('computeHasil: tim biru wins when skorBiru is higher', () => {
+  assert.equal(RobotLog.computeHasil('biru', 10, 5), 'menang');
+});
+
+test('computeHasil: tim biru loses when skorMerah is higher', () => {
+  assert.equal(RobotLog.computeHasil('biru', 5, 10), 'kalah');
+});
+
+test('computeHasil: tim merah wins when skorMerah is higher', () => {
+  assert.equal(RobotLog.computeHasil('merah', 5, 10), 'menang');
+});
+
+test('computeHasil: tim merah loses when skorBiru is higher', () => {
+  assert.equal(RobotLog.computeHasil('merah', 10, 5), 'kalah');
+});
+
+test('computeHasil: tie returns null, no silent default', () => {
+  assert.equal(RobotLog.computeHasil('biru', 7, 7), null);
+});
+
+test('resolveHasil: override wins over computed result', () => {
+  assert.equal(RobotLog.resolveHasil('biru', 10, 5, 'kalah'), 'kalah');
+});
+
+test('resolveHasil: falls back to computeHasil when no override', () => {
+  assert.equal(RobotLog.resolveHasil('biru', 10, 5, null), 'menang');
+});
