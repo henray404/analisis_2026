@@ -102,3 +102,19 @@ test('resolveHasil: override wins over computed result', () => {
 test('resolveHasil: falls back to computeHasil when no override', () => {
   assert.equal(RobotLog.resolveHasil('biru', 10, 5, null), 'menang');
 });
+
+test('computeHasil: tie returns null for merah team too', () => {
+  assert.equal(RobotLog.computeHasil('merah', 7, 7), null);
+});
+
+test('resolveHasil: override = 0 (falsy) falls through to computeHasil', () => {
+  assert.equal(RobotLog.resolveHasil('biru', 10, 5, 0), 'menang');
+});
+
+test('resolveHasil: override = "" (falsy) falls through to computeHasil', () => {
+  assert.equal(RobotLog.resolveHasil('biru', 10, 5, ''), 'menang');
+});
+
+test('resolveHasil: override = undefined (falsy) falls through to computeHasil', () => {
+  assert.equal(RobotLog.resolveHasil('biru', 10, 5, undefined), 'menang');
+});
