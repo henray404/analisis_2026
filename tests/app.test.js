@@ -25,3 +25,52 @@ test('decrementCount subtracts one but floors at 0', () => {
   assert.equal(RobotLog.decrementCount(1), 0);
   assert.equal(RobotLog.decrementCount(0), 0);
 });
+
+test('startStopwatch marks running and records start time', () => {
+  const sw = { running: false, startedAt: null, elapsedMs: 0 };
+  const started = RobotLog.startStopwatch(sw, 1000);
+  assert.deepEqual(started, { running: true, startedAt: 1000, elapsedMs: 0 });
+});
+
+test('startStopwatch is a no-op if already running', () => {
+  const sw = { running: true, startedAt: 500, elapsedMs: 200 };
+  const started = RobotLog.startStopwatch(sw, 9999);
+  assert.deepEqual(started, sw);
+});
+
+test('stopStopwatch folds elapsed time into elapsedMs', () => {
+  const sw = { running: true, startedAt: 1000, elapsedMs: 200 };
+  const stopped = RobotLog.stopStopwatch(sw, 1500);
+  assert.deepEqual(stopped, { running: false, startedAt: null, elapsedMs: 700 });
+});
+
+test('stopStopwatch is a no-op if already stopped', () => {
+  const sw = { running: false, startedAt: null, elapsedMs: 700 };
+  const stopped = RobotLog.stopStopwatch(sw, 9999);
+  assert.deepEqual(stopped, sw);
+});
+
+test('resetStopwatch zeroes everything', () => {
+  assert.deepEqual(RobotLog.resetStopwatch(), { running: false, startedAt: null, elapsedMs: 0 });
+});
+
+test('setStopwatchSeconds pauses and overrides elapsed time', () => {
+  const sw = { running: true, startedAt: 1000, elapsedMs: 200 };
+  const edited = RobotLog.setStopwatchSeconds(sw, 12.4);
+  assert.deepEqual(edited, { running: false, startedAt: null, elapsedMs: 12400 });
+});
+
+test('setStopwatchSeconds floors negative input at 0', () => {
+  const edited = RobotLog.setStopwatchSeconds({ running: false, startedAt: null, elapsedMs: 0 }, -5);
+  assert.equal(edited.elapsedMs, 0);
+});
+
+test('getElapsedSeconds returns stored value when stopped', () => {
+  const sw = { running: false, startedAt: null, elapsedMs: 4300 };
+  assert.equal(RobotLog.getElapsedSeconds(sw, 99999), 4);
+});
+
+test('getElapsedSeconds adds in-flight time when running', () => {
+  const sw = { running: true, startedAt: 1000, elapsedMs: 2000 };
+  assert.equal(RobotLog.getElapsedSeconds(sw, 4500), 5);
+});
