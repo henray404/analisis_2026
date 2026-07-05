@@ -4,18 +4,20 @@
   function createInitialState() {
     return {
       tanggal: null,
+      matchNomor: '',
       tim: null,
       waktuPertandingan: '3 menit',
+      matchTimer: { running: false, startedAt: null, elapsedMs: 0 },
       r1: {
         kotak: 0,
         retry: 0,
-        tongkat: { running: false, startedAt: null, elapsedMs: 0 },
-        assembly: { running: false, startedAt: null, elapsedMs: 0 }
+        tongkat: 0,
+        assembly: 0
       },
       r2: {
         kotak: 0,
         retry: 0,
-        spearhead: { running: false, startedAt: null, elapsedMs: 0 }
+        spearhead: 0
       },
       skorBiru: 0,
       skorMerah: 0,
@@ -46,14 +48,19 @@
     return { running: false, startedAt: null, elapsedMs: 0 };
   }
 
-  function setStopwatchSeconds(sw, seconds) {
-    var ms = Math.max(0, Math.round(seconds * 1000));
-    return { running: false, startedAt: null, elapsedMs: ms };
+  function sanitizeManualSeconds(seconds) {
+    if (isNaN(seconds)) return null;
+    return Math.max(0, seconds);
   }
 
   function getElapsedSeconds(sw, now) {
     var ms = sw.running ? sw.elapsedMs + (now - sw.startedAt) : sw.elapsedMs;
     return Math.floor(ms / 1000);
+  }
+
+  function getElapsedSecondsPrecise(sw, now) {
+    var ms = sw.running ? sw.elapsedMs + (now - sw.startedAt) : sw.elapsedMs;
+    return ms / 1000;
   }
 
   function computeHasil(tim, skorBiru, skorMerah) {
@@ -85,16 +92,16 @@
     return word ? word.charAt(0).toUpperCase() + word.slice(1) : '';
   }
 
-  function formatTemplate(state, now) {
+  function formatTemplate(state) {
     var tanggalStr = formatTanggalIndonesia(state.tanggal);
     var hasil = resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
     var hasilStr = hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : '(belum ditentukan)');
-    var tongkatSec = getElapsedSeconds(state.r1.tongkat, now);
-    var assemblySec = getElapsedSeconds(state.r1.assembly, now);
-    var spearheadSec = getElapsedSeconds(state.r2.spearhead, now);
+    var tongkatSec = state.r1.tongkat.toFixed(2);
+    var assemblySec = state.r1.assembly.toFixed(2);
+    var spearheadSec = state.r2.spearhead.toFixed(2);
 
     return [
-      'Hasil Latihan Match _',
+      'Hasil Latihan Match ' + (state.matchNomor || '_'),
       'Tanggal: ' + tanggalStr,
       '',
       'RICHIE: Tim ' + capitalize(state.tim),
@@ -137,8 +144,9 @@
     startStopwatch: startStopwatch,
     stopStopwatch: stopStopwatch,
     resetStopwatch: resetStopwatch,
-    setStopwatchSeconds: setStopwatchSeconds,
+    sanitizeManualSeconds: sanitizeManualSeconds,
     getElapsedSeconds: getElapsedSeconds,
+    getElapsedSecondsPrecise: getElapsedSecondsPrecise,
     computeHasil: computeHasil,
     resolveHasil: resolveHasil,
     formatTanggalIndonesia: formatTanggalIndonesia,

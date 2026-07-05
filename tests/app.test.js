@@ -5,12 +5,10 @@ const RobotLog = require('../app.js');
 test('createInitialState returns the expected shape', () => {
   const state = RobotLog.createInitialState();
   assert.deepEqual(state, {
-    tanggal: null, tim: null, waktuPertandingan: '3 menit',
-    r1: { kotak: 0, retry: 0,
-          tongkat: { running: false, startedAt: null, elapsedMs: 0 },
-          assembly: { running: false, startedAt: null, elapsedMs: 0 } },
-    r2: { kotak: 0, retry: 0,
-          spearhead: { running: false, startedAt: null, elapsedMs: 0 } },
+    tanggal: null, matchNomor: '', tim: null, waktuPertandingan: '3 menit',
+    matchTimer: { running: false, startedAt: null, elapsedMs: 0 },
+    r1: { kotak: 0, retry: 0, tongkat: 0, assembly: 0 },
+    r2: { kotak: 0, retry: 0, spearhead: 0 },
     skorBiru: 0, skorMerah: 0, hasilOverride: null, catatan: ''
   });
 });
@@ -54,15 +52,17 @@ test('resetStopwatch zeroes everything', () => {
   assert.deepEqual(RobotLog.resetStopwatch(), { running: false, startedAt: null, elapsedMs: 0 });
 });
 
-test('setStopwatchSeconds pauses and overrides elapsed time', () => {
-  const sw = { running: true, startedAt: 1000, elapsedMs: 200 };
-  const edited = RobotLog.setStopwatchSeconds(sw, 12.4);
-  assert.deepEqual(edited, { running: false, startedAt: null, elapsedMs: 12400 });
+test('sanitizeManualSeconds keeps decimal precision, does not round', () => {
+  assert.equal(RobotLog.sanitizeManualSeconds(12.4), 12.4);
+  assert.equal(RobotLog.sanitizeManualSeconds(12.6), 12.6);
 });
 
-test('setStopwatchSeconds floors negative input at 0', () => {
-  const edited = RobotLog.setStopwatchSeconds({ running: false, startedAt: null, elapsedMs: 0 }, -5);
-  assert.equal(edited.elapsedMs, 0);
+test('sanitizeManualSeconds floors negative input at 0', () => {
+  assert.equal(RobotLog.sanitizeManualSeconds(-5), 0);
+});
+
+test('sanitizeManualSeconds returns null for non-numeric input', () => {
+  assert.equal(RobotLog.sanitizeManualSeconds(NaN), null);
 });
 
 test('getElapsedSeconds returns stored value when stopped', () => {
@@ -73,6 +73,16 @@ test('getElapsedSeconds returns stored value when stopped', () => {
 test('getElapsedSeconds adds in-flight time when running', () => {
   const sw = { running: true, startedAt: 1000, elapsedMs: 2000 };
   assert.equal(RobotLog.getElapsedSeconds(sw, 4500), 5);
+});
+
+test('getElapsedSecondsPrecise returns unrounded fractional seconds when running', () => {
+  const sw = { running: true, startedAt: 1000, elapsedMs: 2000 };
+  assert.equal(RobotLog.getElapsedSecondsPrecise(sw, 4500), 5.5);
+});
+
+test('getElapsedSecondsPrecise returns unrounded fractional seconds when stopped', () => {
+  const sw = { running: false, startedAt: null, elapsedMs: 4300 };
+  assert.equal(RobotLog.getElapsedSecondsPrecise(sw, 99999), 4.3);
 });
 
 test('computeHasil: tim biru wins when skorBiru is higher', () => {
@@ -127,19 +137,11 @@ test('formatTanggalIndonesia formats an ISO date in Indonesian', () => {
 test('formatTemplate produces the exact template with real values substituted', () => {
   const state = {
     tanggal: '2026-07-04',
+    matchNomor: '5',
     tim: 'biru',
     waktuPertandingan: '3 menit',
-    r1: {
-      kotak: 7,
-      retry: 2,
-      tongkat: { running: false, startedAt: null, elapsedMs: 12400 },
-      assembly: { running: false, startedAt: null, elapsedMs: 45000 }
-    },
-    r2: {
-      kotak: 5,
-      retry: 1,
-      spearhead: { running: false, startedAt: null, elapsedMs: 8000 }
-    },
+    r1: { kotak: 7, retry: 2, tongkat: 12.437, assembly: 45.1 },
+    r2: { kotak: 5, retry: 1, spearhead: 8.006 },
     skorBiru: 20,
     skorMerah: 15,
     hasilOverride: null,
@@ -147,7 +149,7 @@ test('formatTemplate produces the exact template with real values substituted', 
   };
 
   const expected = [
-    'Hasil Latihan Match _',
+    'Hasil Latihan Match 5',
     'Tanggal: Sabtu, 4 Juli 2026',
     '',
     'RICHIE: Tim Biru',
@@ -157,30 +159,41 @@ test('formatTemplate produces the exact template with real values substituted', 
     '',
     'statistik Robot 1 (R1)',
     'kotak: 7',
-    'tongkat: 12',
-    'assembly: 45',
+    'tongkat: 12.44',
+    'assembly: 45.10',
     'retry: 2',
     '',
     'Statistik Robot 2 (R2)',
     'Kotak: 5',
-    'Spearhead: 8',
+    'Spearhead: 8.01',
     'Retry: 1',
     '',
     'Catatan: Robot lancar, cuma retry di kotak terakhir'
   ].join('\n');
 
-  assert.equal(RobotLog.formatTemplate(state, 0), expected);
+  assert.equal(RobotLog.formatTemplate(state), expected);
 });
 
 test('formatTemplate shows a placeholder Hasil when scores tie and no override', () => {
   const state = {
     tanggal: '2026-07-04', tim: 'biru', waktuPertandingan: '3 menit',
-    r1: { kotak: 0, retry: 0, tongkat: { running: false, startedAt: null, elapsedMs: 0 }, assembly: { running: false, startedAt: null, elapsedMs: 0 } },
-    r2: { kotak: 0, retry: 0, spearhead: { running: false, startedAt: null, elapsedMs: 0 } },
+    r1: { kotak: 0, retry: 0, tongkat: 0, assembly: 0 },
+    r2: { kotak: 0, retry: 0, spearhead: 0 },
     skorBiru: 10, skorMerah: 10, hasilOverride: null, catatan: ''
   };
-  const text = RobotLog.formatTemplate(state, 0);
+  const text = RobotLog.formatTemplate(state);
   assert.match(text, /Hasil: \(belum ditentukan\)/);
+});
+
+test('formatTemplate falls back to underscore placeholder when matchNomor is not set', () => {
+  const state = {
+    tanggal: '2026-07-04', tim: 'biru', waktuPertandingan: '3 menit',
+    r1: { kotak: 0, retry: 0, tongkat: 0, assembly: 0 },
+    r2: { kotak: 0, retry: 0, spearhead: 0 },
+    skorBiru: 0, skorMerah: 0, hasilOverride: null, catatan: ''
+  };
+  const text = RobotLog.formatTemplate(state);
+  assert.match(text, /^Hasil Latihan Match _$/m);
 });
 
 test('serializeDraft/deserializeDraft round-trip a state object', () => {
@@ -203,11 +216,11 @@ test('deserializeDraft returns null for invalid JSON', () => {
 test('formatTemplate does not throw when state.tim is null (no Tim selected yet)', () => {
   const state = {
     tanggal: '2026-07-04', tim: null, waktuPertandingan: '3 menit',
-    r1: { kotak: 0, retry: 0, tongkat: { running: false, startedAt: null, elapsedMs: 0 }, assembly: { running: false, startedAt: null, elapsedMs: 0 } },
-    r2: { kotak: 0, retry: 0, spearhead: { running: false, startedAt: null, elapsedMs: 0 } },
+    r1: { kotak: 0, retry: 0, tongkat: 0, assembly: 0 },
+    r2: { kotak: 0, retry: 0, spearhead: 0 },
     skorBiru: 0, skorMerah: 0, hasilOverride: null, catatan: ''
   };
-  assert.doesNotThrow(() => RobotLog.formatTemplate(state, 0));
-  const text = RobotLog.formatTemplate(state, 0);
+  assert.doesNotThrow(() => RobotLog.formatTemplate(state));
+  const text = RobotLog.formatTemplate(state);
   assert.match(text, /^RICHIE: Tim $/m);
 });
