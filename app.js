@@ -63,6 +63,18 @@
     return ms / 1000;
   }
 
+  function pad2(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
+
+  function formatMatchTime(totalSeconds) {
+    var totalWholeSeconds = Math.floor(totalSeconds);
+    var cs = Math.floor(totalSeconds * 100) % 100;
+    var m = Math.floor(totalWholeSeconds / 60);
+    var s = totalWholeSeconds % 60;
+    return pad2(m) + '.' + pad2(s) + '.' + pad2(cs);
+  }
+
   function computeHasil(tim, skorBiru, skorMerah) {
     if (skorBiru === skorMerah) return null;
     if (tim === 'biru') return skorBiru > skorMerah ? 'menang' : 'kalah';
@@ -95,10 +107,12 @@
   function formatTemplate(state) {
     var tanggalStr = formatTanggalIndonesia(state.tanggal);
     var hasil = resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
-    var hasilStr = hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : '(belum ditentukan)');
-    var tongkatSec = state.r1.tongkat.toFixed(2);
-    var assemblySec = state.r1.assembly.toFixed(2);
-    var spearheadSec = state.r2.spearhead.toFixed(2);
+    var hasilStr = hasil === 'menang' ? 'Menang' :
+      (hasil === 'kalah' ? 'Kalah' :
+      (hasil === 'kfm' ? 'Menang KFM' : '(belum ditentukan)'));
+    var tongkatSec = formatMatchTime(state.r1.tongkat);
+    var assemblySec = formatMatchTime(state.r1.assembly);
+    var spearheadSec = formatMatchTime(state.r2.spearhead);
 
     return [
       'Hasil Latihan Match ' + (state.matchNomor || '_'),
@@ -147,6 +161,7 @@
     sanitizeManualSeconds: sanitizeManualSeconds,
     getElapsedSeconds: getElapsedSeconds,
     getElapsedSecondsPrecise: getElapsedSecondsPrecise,
+    formatMatchTime: formatMatchTime,
     computeHasil: computeHasil,
     resolveHasil: resolveHasil,
     formatTanggalIndonesia: formatTanggalIndonesia,

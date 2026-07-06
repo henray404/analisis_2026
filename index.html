@@ -15,7 +15,7 @@
   }
   h2 { font-size: 16px; margin: 16px 0 8px; }
   .bar {
-    display: flex;
+  display: flex;
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
@@ -97,8 +97,8 @@
 
   <h2>Live Tracking</h2>
   <div class="bar">
-    <span class="label">Match Timer (detik)</span>
-    <span class="time-value" id="match-timer-value">0</span>
+    <span class="label">Match Timer (menit.detik.centidetik)</span>
+    <span class="time-value" id="match-timer-value">00.00.00</span>
     <button id="match-timer-toggle">Start</button>
     <button id="match-timer-reset">Reset</button>
   </div>
@@ -114,8 +114,8 @@
       </div>
 
       <div class="stat-row">
-        <span class="label">Tongkat (detik)</span>
-        <span class="time-value" id="r1-tongkat-value">0</span>
+        <span class="label">Tongkat (menit.detik.centidetik)</span>
+        <span class="time-value" id="r1-tongkat-value">00.00.00</span>
         <button id="r1-tongkat-catat">Catat</button>
       </div>
       <div class="stat-row">
@@ -123,8 +123,8 @@
       </div>
 
       <div class="stat-row">
-        <span class="label">Assembly (detik)</span>
-        <span class="time-value" id="r1-assembly-value">0</span>
+        <span class="label">Assembly (menit.detik.centidetik)</span>
+        <span class="time-value" id="r1-assembly-value">00.00.00</span>
         <button id="r1-assembly-catat">Catat</button>
       </div>
       <div class="stat-row">
@@ -150,8 +150,8 @@
       </div>
 
       <div class="stat-row">
-        <span class="label">Spearhead (detik)</span>
-        <span class="time-value" id="r2-spearhead-value">0</span>
+        <span class="label">Spearhead (menit.detik.centidetik)</span>
+        <span class="time-value" id="r2-spearhead-value">00.00.00</span>
         <button id="r2-spearhead-catat">Catat</button>
       </div>
       <div class="stat-row">
@@ -176,6 +176,7 @@
     <span>Hasil: <strong id="hasil-value">-</strong></span>
     <button id="hasil-menang">Paksa Menang</button>
     <button id="hasil-kalah">Paksa Kalah</button>
+    <button id="hasil-kfm">KFM (Menang Telak)</button>
     <button id="hasil-clear">Clear Override</button>
   </div>
   <div class="bar">
@@ -219,12 +220,12 @@
       document.getElementById('r2-kotak-value').textContent = state.r2.kotak;
       document.getElementById('r2-retry-value').textContent = state.r2.retry;
       document.getElementById('match-timer-toggle').textContent = state.matchTimer.running ? 'Stop' : 'Start';
-      document.getElementById('r1-tongkat-value').textContent = state.r1.tongkat.toFixed(2);
-      document.getElementById('r1-assembly-value').textContent = state.r1.assembly.toFixed(2);
-      document.getElementById('r2-spearhead-value').textContent = state.r2.spearhead.toFixed(2);
+      document.getElementById('r1-tongkat-value').textContent = RobotLog.formatMatchTime(state.r1.tongkat);
+      document.getElementById('r1-assembly-value').textContent = RobotLog.formatMatchTime(state.r1.assembly);
+      document.getElementById('r2-spearhead-value').textContent = RobotLog.formatMatchTime(state.r2.spearhead);
       var hasil = RobotLog.resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
       document.getElementById('hasil-value').textContent =
-        hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : '(belum ditentukan)');
+        hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : (hasil === 'kfm' ? 'Menang KFM' : '(belum ditentukan)'));
       saveDraft();
     }
 
@@ -310,6 +311,10 @@
       state.hasilOverride = 'kalah';
       render();
     });
+    document.getElementById('hasil-kfm').addEventListener('click', function () {
+      state.hasilOverride = 'kfm';
+      render();
+    });
     document.getElementById('hasil-clear').addEventListener('click', function () {
       state.hasilOverride = null;
       render();
@@ -352,7 +357,7 @@
     });
 
     function tickLoop() {
-      document.getElementById('match-timer-value').textContent = RobotLog.getElapsedSecondsPrecise(state.matchTimer, Date.now()).toFixed(2);
+      document.getElementById('match-timer-value').textContent = RobotLog.formatMatchTime(RobotLog.getElapsedSecondsPrecise(state.matchTimer, Date.now()));
       requestAnimationFrame(tickLoop);
     }
 

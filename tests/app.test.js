@@ -85,6 +85,17 @@ test('getElapsedSecondsPrecise returns unrounded fractional seconds when stopped
   assert.equal(RobotLog.getElapsedSecondsPrecise(sw, 99999), 4.3);
 });
 
+test('formatMatchTime formats seconds as mm.ss.cs, zero-padded', () => {
+  assert.equal(RobotLog.formatMatchTime(0), '00.00.00');
+  assert.equal(RobotLog.formatMatchTime(5.5), '00.05.50');
+  assert.equal(RobotLog.formatMatchTime(65.25), '01.05.25');
+});
+
+test('formatMatchTime truncates (does not round) the centisecond part', () => {
+  assert.equal(RobotLog.formatMatchTime(8.006), '00.08.00');
+  assert.equal(RobotLog.formatMatchTime(12.437), '00.12.43');
+});
+
 test('computeHasil: tim biru wins when skorBiru is higher', () => {
   assert.equal(RobotLog.computeHasil('biru', 10, 5), 'menang');
 });
@@ -159,13 +170,13 @@ test('formatTemplate produces the exact template with real values substituted', 
     '',
     'statistik Robot 1 (R1)',
     'kotak: 7',
-    'tongkat: 12.44',
-    'assembly: 45.10',
+    'tongkat: 00.12.43',
+    'assembly: 00.45.10',
     'retry: 2',
     '',
     'Statistik Robot 2 (R2)',
     'Kotak: 5',
-    'Spearhead: 8.01',
+    'Spearhead: 00.08.00',
     'Retry: 1',
     '',
     'Catatan: Robot lancar, cuma retry di kotak terakhir'
@@ -183,6 +194,17 @@ test('formatTemplate shows a placeholder Hasil when scores tie and no override',
   };
   const text = RobotLog.formatTemplate(state);
   assert.match(text, /Hasil: \(belum ditentukan\)/);
+});
+
+test('formatTemplate shows Menang KFM when hasilOverride is kfm', () => {
+  const state = {
+    tanggal: '2026-07-04', tim: 'biru', waktuPertandingan: '3 menit',
+    r1: { kotak: 0, retry: 0, tongkat: 0, assembly: 0 },
+    r2: { kotak: 0, retry: 0, spearhead: 0 },
+    skorBiru: 10, skorMerah: 10, hasilOverride: 'kfm', catatan: ''
+  };
+  const text = RobotLog.formatTemplate(state);
+  assert.match(text, /Hasil: Menang KFM/);
 });
 
 test('formatTemplate falls back to underscore placeholder when matchNomor is not set', () => {
