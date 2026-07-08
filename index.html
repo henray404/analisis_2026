@@ -133,7 +133,7 @@
     color: #2b0606;
     border-color: #ef4444;
   }
-  #hasil-kfm, #rt-logrun-kfm {
+  #hasil-kfm, #rt-kfm-berhasil {
     background: #b8860b;
     color: #241900;
     border-color: #d4a017;
@@ -287,6 +287,8 @@
     <div class="bar">
       <span class="label">Persentase KFM</span>
       <span class="count-value" id="rt-kfm-value">0 / 0</span>
+      <button class="plus" id="rt-kfm-berhasil">Berhasil</button>
+      <button class="minus" id="rt-kfm-gagal">Gagal</button>
     </div>
 
     <h2>Run Timer</h2>
@@ -483,18 +485,12 @@
       </div>
     </div>
 
-    <h2>Log Run</h2>
-    <div class="bar">
-      <button id="rt-logrun-normal">Log Run</button>
-      <button id="rt-logrun-kfm">Log Run (KFM)</button>
-      <button id="rt-reset-all">Reset All</button>
-    </div>
-
     <h2>Output</h2>
     <div class="bar">
       <button id="rt-generate-btn">Generate</button>
       <button id="rt-copy-btn">Copy</button>
       <button id="rt-share-btn" style="display:none;">Share</button>
+      <button id="rt-reset-all">Reset All</button>
     </div>
     <textarea id="rt-output" rows="20" readonly></textarea>
   </div>
@@ -533,7 +529,7 @@
     function renderRt() {
       document.getElementById('rt-dominan-biru').setAttribute('aria-pressed', rtState.dominan === 'biru');
       document.getElementById('rt-dominan-merah').setAttribute('aria-pressed', rtState.dominan === 'merah');
-      document.getElementById('rt-kfm-value').textContent = rtState.kfmCount + ' / ' + rtState.totalPermainan;
+      document.getElementById('rt-kfm-value').textContent = RobotLog.formatRatio(rtState.kfm);
       document.getElementById('rt-run-timer-toggle').textContent = rtState.runTimer.running ? 'Stop' : 'Start';
 
       var r1 = rtState.run.r1;
@@ -577,6 +573,15 @@
       renderRt();
     });
 
+    document.getElementById('rt-kfm-berhasil').addEventListener('click', function () {
+      rtState.kfm = RobotLog.recordSuccess(rtState.kfm);
+      renderRt();
+    });
+    document.getElementById('rt-kfm-gagal').addEventListener('click', function () {
+      rtState.kfm = RobotLog.recordFail(rtState.kfm);
+      renderRt();
+    });
+
     document.getElementById('rt-run-timer-toggle').addEventListener('click', function () {
       var sw = rtState.runTimer;
       rtState.runTimer = sw.running
@@ -590,19 +595,8 @@
     });
 
     document.getElementById('rt-reset-all').addEventListener('click', function () {
-      if (!confirm('Reset semua data Running Test (termasuk history KFM/total permainan)? Tindakan ini tidak bisa dibatalkan.')) return;
+      if (!confirm('Reset semua data Running Test (termasuk Persentase KFM)? Tindakan ini tidak bisa dibatalkan.')) return;
       rtState = RobotLog.createRunningTestState();
-      populateRtInputs();
-      renderRt();
-    });
-
-    document.getElementById('rt-logrun-normal').addEventListener('click', function () {
-      rtState = RobotLog.logRun(rtState, false);
-      populateRtInputs();
-      renderRt();
-    });
-    document.getElementById('rt-logrun-kfm').addEventListener('click', function () {
-      rtState = RobotLog.logRun(rtState, true);
       populateRtInputs();
       renderRt();
     });
@@ -700,7 +694,7 @@
     wireRtMark('rt-r2-taruhrak', 'r2', 'waktuTaruhRak');
 
     document.getElementById('rt-generate-btn').addEventListener('click', function () {
-      document.getElementById('rt-output').value = rtState.log.join('\n\n');
+      document.getElementById('rt-output').value = RobotLog.formatRunningTestEntry(rtState);
     });
     document.getElementById('rt-copy-btn').addEventListener('click', function () {
       var output = document.getElementById('rt-output');

@@ -293,7 +293,7 @@ test('createRunningTestState returns the expected shape', () => {
   const state = RobotLog.createRunningTestState();
   assert.deepEqual(state, {
     universitas: '', namaTim: '', dominan: null,
-    totalPermainan: 0, kfmCount: 0,
+    kfm: { terambil: 0, total: 0 },
     runTimer: { running: false, startedAt: null, elapsedMs: 0 },
     run: {
       r1: {
@@ -307,8 +307,7 @@ test('createRunningTestState returns the expected shape', () => {
         storageKfs: 0, waktuForest: 0, deltaForest: 0, seringErrorIndex: '',
         waktuMasukArena: 0, urutanRak: [], waktuTaruhRak: 0
       }
-    },
-    log: []
+    }
   });
 });
 
@@ -321,8 +320,7 @@ test('formatRunningTestEntry produces the exact template with real values substi
   rt.universitas = 'ITS';
   rt.namaTim = 'Garuda';
   rt.dominan = 'biru';
-  rt.totalPermainan = 4;
-  rt.kfmCount = 1;
+  rt.kfm = { terambil: 1, total: 4 };
   rt.run.r1.staf = { terambil: 3, total: 5 };
   rt.run.r1.waktuStaf = 65;
   rt.run.r1.waktuAssembly = 40;
@@ -398,40 +396,3 @@ test('formatRunningTestEntry does not throw on a fully default state', () => {
   assert.doesNotThrow(() => RobotLog.formatRunningTestEntry(rt));
 });
 
-test('logRun bumps totalPermainan, appends a log entry, and resets run fields', () => {
-  const rt = RobotLog.createRunningTestState();
-  rt.universitas = 'ITS';
-  rt.namaTim = 'Garuda';
-  rt.dominan = 'biru';
-  rt.run.r1.storageSpear = 3;
-
-  const next = RobotLog.logRun(rt, false);
-
-  assert.equal(next.totalPermainan, 1);
-  assert.equal(next.kfmCount, 0);
-  assert.equal(next.log.length, 1);
-  assert.match(next.log[0], /^ITS, Garuda$/m);
-  assert.match(next.log[0], /^Persentase KFM: 0 \/ 1$/m);
-  assert.deepEqual(next.run, RobotLog.createRunningTestRun());
-});
-
-test('logRun with isKfm=true bumps kfmCount too', () => {
-  const rt = RobotLog.createRunningTestState();
-  const next = RobotLog.logRun(rt, true);
-  assert.equal(next.totalPermainan, 1);
-  assert.equal(next.kfmCount, 1);
-});
-
-test('logRun preserves universitas/namaTim/dominan across runs, does not mutate input', () => {
-  const rt = RobotLog.createRunningTestState();
-  rt.universitas = 'ITS';
-  rt.namaTim = 'Garuda';
-  rt.dominan = 'merah';
-
-  const next = RobotLog.logRun(rt, false);
-
-  assert.equal(next.universitas, 'ITS');
-  assert.equal(next.namaTim, 'Garuda');
-  assert.equal(next.dominan, 'merah');
-  assert.equal(rt.totalPermainan, 0, 'input state must not be mutated');
-});

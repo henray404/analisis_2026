@@ -210,11 +210,9 @@
       universitas: '',
       namaTim: '',
       dominan: null,
-      totalPermainan: 0,
-      kfmCount: 0,
+      kfm: { terambil: 0, total: 0 },
       runTimer: { running: false, startedAt: null, elapsedMs: 0 },
-      run: createRunningTestRun(),
-      log: []
+      run: createRunningTestRun()
     };
   }
 
@@ -223,7 +221,7 @@
     var dominanStr = rt.dominan === 'merah' ? 'Merah' : (rt.dominan === 'biru' ? 'Biru' : '-');
     return [
       (rt.universitas || '_') + ', ' + (rt.namaTim || '_'),
-      'Persentase KFM: ' + rt.kfmCount + ' / ' + rt.totalPermainan,
+      'Persentase KFM: ' + formatRatio(rt.kfm),
       'Dominan di lapangan: ' + dominanStr,
       'R1:',
       'keberhasilan ambil staf: ' + formatRatio(run.r1.staf),
@@ -256,19 +254,6 @@
       'urutan taruh kfs: ' + formatSequence(run.r2.urutanRak),
       'waktu taruh kfs di rak: ' + formatMenitDetik(run.r2.waktuTaruhRak)
     ].join('\n');
-  }
-
-  function logRun(rt, isKfm) {
-    var totalPermainan = rt.totalPermainan + 1;
-    var kfmCount = rt.kfmCount + (isKfm ? 1 : 0);
-    var snapshot = Object.assign({}, rt, { totalPermainan: totalPermainan, kfmCount: kfmCount });
-    var entry = formatRunningTestEntry(snapshot);
-    return Object.assign({}, rt, {
-      totalPermainan: totalPermainan,
-      kfmCount: kfmCount,
-      log: rt.log.concat([entry]),
-      run: createRunningTestRun()
-    });
   }
 
   function serializeDraft(state) {
@@ -311,8 +296,7 @@
     formatMenitDetik: formatMenitDetik,
     createRunningTestRun: createRunningTestRun,
     createRunningTestState: createRunningTestState,
-    formatRunningTestEntry: formatRunningTestEntry,
-    logRun: logRun
+    formatRunningTestEntry: formatRunningTestEntry
   };
 
   root.RobotLog = RobotLog;
