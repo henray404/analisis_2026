@@ -246,3 +246,192 @@ test('formatTemplate does not throw when state.tim is null (no Tim selected yet)
   const text = RobotLog.formatTemplate(state);
   assert.match(text, /^RICHIE: Tim $/m);
 });
+
+test('appendSequenceSlot appends a slot to the end', () => {
+  assert.deepEqual(RobotLog.appendSequenceSlot([], 'tengah'), ['tengah']);
+  assert.deepEqual(RobotLog.appendSequenceSlot(['tengah'], 'kanan'), ['tengah', 'kanan']);
+});
+
+test('undoSequenceSlot removes the last slot', () => {
+  assert.deepEqual(RobotLog.undoSequenceSlot(['tengah', 'kanan']), ['tengah']);
+  assert.deepEqual(RobotLog.undoSequenceSlot([]), []);
+});
+
+test('clearSequence returns an empty array', () => {
+  assert.deepEqual(RobotLog.clearSequence(), []);
+});
+
+test('formatSequence joins slots with comma-space', () => {
+  assert.equal(RobotLog.formatSequence(['tengah', 'kanan', 'kiri']), 'tengah, kanan, kiri');
+  assert.equal(RobotLog.formatSequence([]), '');
+});
+
+test('recordSuccess increments both terambil and total', () => {
+  assert.deepEqual(RobotLog.recordSuccess({ terambil: 2, total: 3 }), { terambil: 3, total: 4 });
+});
+
+test('recordFail increments only total', () => {
+  assert.deepEqual(RobotLog.recordFail({ terambil: 2, total: 3 }), { terambil: 2, total: 4 });
+});
+
+test('formatRatio formats as "terambil / total"', () => {
+  assert.equal(RobotLog.formatRatio({ terambil: 2, total: 5 }), '2 / 5');
+  assert.equal(RobotLog.formatRatio({ terambil: 0, total: 0 }), '0 / 0');
+});
+
+test('formatMenitDetik formats seconds as "m : s"', () => {
+  assert.equal(RobotLog.formatMenitDetik(0), '0 : 0');
+  assert.equal(RobotLog.formatMenitDetik(65), '1 : 5');
+  assert.equal(RobotLog.formatMenitDetik(125), '2 : 5');
+});
+
+test('formatMenitDetik truncates fractional seconds', () => {
+  assert.equal(RobotLog.formatMenitDetik(65.9), '1 : 5');
+});
+
+test('createRunningTestState returns the expected shape', () => {
+  const state = RobotLog.createRunningTestState();
+  assert.deepEqual(state, {
+    universitas: '', namaTim: '', dominan: null,
+    totalPermainan: 0, kfmCount: 0,
+    runTimer: { running: false, startedAt: null, elapsedMs: 0 },
+    run: {
+      r1: {
+        staf: { terambil: 0, total: 0 }, waktuStaf: 0, waktuAssembly: 0,
+        storageSpear: 0, storageKfs: 0, waktuMasukArena: 0, kesusahanIndex: '',
+        waktuForestArena: 0, urutanRak: [], waktuTaruhRak: 0, waktuRetryZona3: 0,
+        tusukRow: '', deltaAngkatR2: 0
+      },
+      r2: {
+        spearhead: { terambil: 0, total: 0 }, seringIndexSpearhead: '', waktuSpearhead: 0,
+        storageKfs: 0, waktuForest: 0, deltaForest: 0, seringErrorIndex: '',
+        waktuMasukArena: 0, urutanRak: [], waktuTaruhRak: 0
+      }
+    },
+    log: []
+  });
+});
+
+test('createRunningTestRun returns a fresh run object matching state.run', () => {
+  assert.deepEqual(RobotLog.createRunningTestRun(), RobotLog.createRunningTestState().run);
+});
+
+test('formatRunningTestEntry produces the exact template with real values substituted', () => {
+  const rt = RobotLog.createRunningTestState();
+  rt.universitas = 'ITS';
+  rt.namaTim = 'Garuda';
+  rt.dominan = 'biru';
+  rt.totalPermainan = 4;
+  rt.kfmCount = 1;
+  rt.run.r1.staf = { terambil: 3, total: 5 };
+  rt.run.r1.waktuStaf = 65;
+  rt.run.r1.waktuAssembly = 40;
+  rt.run.r1.storageSpear = 2;
+  rt.run.r1.storageKfs = 3;
+  rt.run.r1.waktuMasukArena = 20;
+  rt.run.r1.kesusahanIndex = '3 dan 4';
+  rt.run.r1.waktuForestArena = 15;
+  rt.run.r1.urutanRak = ['tengah', 'kanan', 'kiri'];
+  rt.run.r1.waktuTaruhRak = 10;
+  rt.run.r1.waktuRetryZona3 = 8;
+  rt.run.r1.tusukRow = 'row 1 dan 2';
+  rt.run.r1.deltaAngkatR2 = 5;
+  rt.run.r2.spearhead = { terambil: 2, total: 3 };
+  rt.run.r2.seringIndexSpearhead = 'index 2';
+  rt.run.r2.waktuSpearhead = 12;
+  rt.run.r2.storageKfs = 1;
+  rt.run.r2.waktuForest = 18;
+  rt.run.r2.deltaForest = 3;
+  rt.run.r2.seringErrorIndex = 'index 5';
+  rt.run.r2.waktuMasukArena = 22;
+  rt.run.r2.urutanRak = ['tengah', 'kanan', 'kiri', 'atas'];
+  rt.run.r2.waktuTaruhRak = 9;
+
+  const expected = [
+    'ITS, Garuda',
+    'Persentase KFM: 1 / 4',
+    'Dominan di lapangan: Biru',
+    'R1:',
+    'keberhasilan ambil staf: 3 / 5',
+    'waktu ambil staf: 1 : 5',
+    'waktu assembly: 0 : 40',
+    '',
+    'storage spear: 2 spear',
+    'storage kfs: 3 kotak',
+    'waktu masuk arena: 0 : 20',
+    'kesusahan ambil kfs di index: 3 dan 4',
+    '',
+    'waktu perjalanan forest-arena: 0 : 15',
+    'urutan taruh kfs di rak: tengah, kanan, kiri',
+    'waktu taruh kfs di rak: 0 : 10',
+    'waktu perjalanan retry zona 3 ke rak: 0 : 8',
+    'bisa tusuk row apa saja: row 1 dan 2',
+    'delta waktu angkat R2: 5',
+    '',
+    'R2:',
+    'keberhasilan ambil spearhead: 2 / 3',
+    'sering ambil spearhead di index: index 2',
+    'waktu ambil spearhead: 0 : 12',
+    '',
+    'storage KFS: 1 kotak',
+    'waktu melewati forest: 0 : 18',
+    'delta waktu melewati forest: 3',
+    'sering error di index: index 5',
+    '',
+    'waktu masuk ke arena: 0 : 22',
+    'urutan taruh kfs: tengah, kanan, kiri, atas',
+    'waktu taruh kfs di rak: 0 : 9'
+  ].join('\n');
+
+  assert.equal(RobotLog.formatRunningTestEntry(rt), expected);
+});
+
+test('formatRunningTestEntry uses "-" for unset dominan and "_" for unset team names', () => {
+  const rt = RobotLog.createRunningTestState();
+  const text = RobotLog.formatRunningTestEntry(rt);
+  assert.match(text, /^_, _$/m);
+  assert.match(text, /^Dominan di lapangan: -$/m);
+});
+
+test('formatRunningTestEntry does not throw on a fully default state', () => {
+  const rt = RobotLog.createRunningTestState();
+  assert.doesNotThrow(() => RobotLog.formatRunningTestEntry(rt));
+});
+
+test('logRun bumps totalPermainan, appends a log entry, and resets run fields', () => {
+  const rt = RobotLog.createRunningTestState();
+  rt.universitas = 'ITS';
+  rt.namaTim = 'Garuda';
+  rt.dominan = 'biru';
+  rt.run.r1.storageSpear = 3;
+
+  const next = RobotLog.logRun(rt, false);
+
+  assert.equal(next.totalPermainan, 1);
+  assert.equal(next.kfmCount, 0);
+  assert.equal(next.log.length, 1);
+  assert.match(next.log[0], /^ITS, Garuda$/m);
+  assert.match(next.log[0], /^Persentase KFM: 0 \/ 1$/m);
+  assert.deepEqual(next.run, RobotLog.createRunningTestRun());
+});
+
+test('logRun with isKfm=true bumps kfmCount too', () => {
+  const rt = RobotLog.createRunningTestState();
+  const next = RobotLog.logRun(rt, true);
+  assert.equal(next.totalPermainan, 1);
+  assert.equal(next.kfmCount, 1);
+});
+
+test('logRun preserves universitas/namaTim/dominan across runs, does not mutate input', () => {
+  const rt = RobotLog.createRunningTestState();
+  rt.universitas = 'ITS';
+  rt.namaTim = 'Garuda';
+  rt.dominan = 'merah';
+
+  const next = RobotLog.logRun(rt, false);
+
+  assert.equal(next.universitas, 'ITS');
+  assert.equal(next.namaTim, 'Garuda');
+  assert.equal(next.dominan, 'merah');
+  assert.equal(rt.totalPermainan, 0, 'input state must not be mutated');
+});

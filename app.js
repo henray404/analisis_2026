@@ -138,6 +138,139 @@
     ].join('\n');
   }
 
+  function appendSequenceSlot(seq, slot) {
+    return seq.concat([slot]);
+  }
+
+  function undoSequenceSlot(seq) {
+    return seq.slice(0, -1);
+  }
+
+  function clearSequence() {
+    return [];
+  }
+
+  function formatSequence(seq) {
+    return seq.join(', ');
+  }
+
+  function recordSuccess(ratio) {
+    return { terambil: ratio.terambil + 1, total: ratio.total + 1 };
+  }
+
+  function recordFail(ratio) {
+    return { terambil: ratio.terambil, total: ratio.total + 1 };
+  }
+
+  function formatRatio(ratio) {
+    return ratio.terambil + ' / ' + ratio.total;
+  }
+
+  function formatMenitDetik(totalSeconds) {
+    var total = Math.floor(totalSeconds);
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    return m + ' : ' + s;
+  }
+
+  function createRunningTestRun() {
+    return {
+      r1: {
+        staf: { terambil: 0, total: 0 },
+        waktuStaf: 0,
+        waktuAssembly: 0,
+        storageSpear: 0,
+        storageKfs: 0,
+        waktuMasukArena: 0,
+        kesusahanIndex: '',
+        waktuForestArena: 0,
+        urutanRak: [],
+        waktuTaruhRak: 0,
+        waktuRetryZona3: 0,
+        tusukRow: '',
+        deltaAngkatR2: 0
+      },
+      r2: {
+        spearhead: { terambil: 0, total: 0 },
+        seringIndexSpearhead: '',
+        waktuSpearhead: 0,
+        storageKfs: 0,
+        waktuForest: 0,
+        deltaForest: 0,
+        seringErrorIndex: '',
+        waktuMasukArena: 0,
+        urutanRak: [],
+        waktuTaruhRak: 0
+      }
+    };
+  }
+
+  function createRunningTestState() {
+    return {
+      universitas: '',
+      namaTim: '',
+      dominan: null,
+      totalPermainan: 0,
+      kfmCount: 0,
+      runTimer: { running: false, startedAt: null, elapsedMs: 0 },
+      run: createRunningTestRun(),
+      log: []
+    };
+  }
+
+  function formatRunningTestEntry(rt) {
+    var run = rt.run;
+    var dominanStr = rt.dominan === 'merah' ? 'Merah' : (rt.dominan === 'biru' ? 'Biru' : '-');
+    return [
+      (rt.universitas || '_') + ', ' + (rt.namaTim || '_'),
+      'Persentase KFM: ' + rt.kfmCount + ' / ' + rt.totalPermainan,
+      'Dominan di lapangan: ' + dominanStr,
+      'R1:',
+      'keberhasilan ambil staf: ' + formatRatio(run.r1.staf),
+      'waktu ambil staf: ' + formatMenitDetik(run.r1.waktuStaf),
+      'waktu assembly: ' + formatMenitDetik(run.r1.waktuAssembly),
+      '',
+      'storage spear: ' + run.r1.storageSpear + ' spear',
+      'storage kfs: ' + run.r1.storageKfs + ' kotak',
+      'waktu masuk arena: ' + formatMenitDetik(run.r1.waktuMasukArena),
+      'kesusahan ambil kfs di index: ' + run.r1.kesusahanIndex,
+      '',
+      'waktu perjalanan forest-arena: ' + formatMenitDetik(run.r1.waktuForestArena),
+      'urutan taruh kfs di rak: ' + formatSequence(run.r1.urutanRak),
+      'waktu taruh kfs di rak: ' + formatMenitDetik(run.r1.waktuTaruhRak),
+      'waktu perjalanan retry zona 3 ke rak: ' + formatMenitDetik(run.r1.waktuRetryZona3),
+      'bisa tusuk row apa saja: ' + run.r1.tusukRow,
+      'delta waktu angkat R2: ' + run.r1.deltaAngkatR2,
+      '',
+      'R2:',
+      'keberhasilan ambil spearhead: ' + formatRatio(run.r2.spearhead),
+      'sering ambil spearhead di index: ' + run.r2.seringIndexSpearhead,
+      'waktu ambil spearhead: ' + formatMenitDetik(run.r2.waktuSpearhead),
+      '',
+      'storage KFS: ' + run.r2.storageKfs + ' kotak',
+      'waktu melewati forest: ' + formatMenitDetik(run.r2.waktuForest),
+      'delta waktu melewati forest: ' + run.r2.deltaForest,
+      'sering error di index: ' + run.r2.seringErrorIndex,
+      '',
+      'waktu masuk ke arena: ' + formatMenitDetik(run.r2.waktuMasukArena),
+      'urutan taruh kfs: ' + formatSequence(run.r2.urutanRak),
+      'waktu taruh kfs di rak: ' + formatMenitDetik(run.r2.waktuTaruhRak)
+    ].join('\n');
+  }
+
+  function logRun(rt, isKfm) {
+    var totalPermainan = rt.totalPermainan + 1;
+    var kfmCount = rt.kfmCount + (isKfm ? 1 : 0);
+    var snapshot = Object.assign({}, rt, { totalPermainan: totalPermainan, kfmCount: kfmCount });
+    var entry = formatRunningTestEntry(snapshot);
+    return Object.assign({}, rt, {
+      totalPermainan: totalPermainan,
+      kfmCount: kfmCount,
+      log: rt.log.concat([entry]),
+      run: createRunningTestRun()
+    });
+  }
+
   function serializeDraft(state) {
     return JSON.stringify(state);
   }
@@ -167,7 +300,19 @@
     formatTanggalIndonesia: formatTanggalIndonesia,
     formatTemplate: formatTemplate,
     serializeDraft: serializeDraft,
-    deserializeDraft: deserializeDraft
+    deserializeDraft: deserializeDraft,
+    appendSequenceSlot: appendSequenceSlot,
+    undoSequenceSlot: undoSequenceSlot,
+    clearSequence: clearSequence,
+    formatSequence: formatSequence,
+    recordSuccess: recordSuccess,
+    recordFail: recordFail,
+    formatRatio: formatRatio,
+    formatMenitDetik: formatMenitDetik,
+    createRunningTestRun: createRunningTestRun,
+    createRunningTestState: createRunningTestState,
+    formatRunningTestEntry: formatRunningTestEntry,
+    logRun: logRun
   };
 
   root.RobotLog = RobotLog;
