@@ -10,14 +10,15 @@
     font-family: system-ui, sans-serif;
     margin: 0;
     padding: 12px;
-    background: #111;
+    background: #10141c;
     color: #eee;
   }
-  h2 { font-size: 16px; margin: 16px 0 8px; }
+  h2 { font-size: 16px; margin: 20px 0 10px; border-top: 1px solid #2c3648; padding-top: 12px; }
+  h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
   .bar {
   display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
     align-items: center;
     margin-bottom: 8px;
   }
@@ -31,7 +32,7 @@
   }
   button {
     font-size: 16px;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: 8px;
     border: 1px solid #555;
     background: #333;
@@ -46,16 +47,16 @@
     gap: 8px;
   }
   .robot-card {
-    border: 1px solid #444;
+    border: 2px solid #444;
     border-radius: 8px;
-    padding: 8px;
+    padding: 12px;
   }
   .stat-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
   }
   .stat-row .label { font-size: 13px; flex: 1; }
   .count-value, .time-value {
@@ -80,9 +81,87 @@
     border-radius: 6px;
     margin-bottom: 8px;
   }
+  .navbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    position: sticky;
+    top: 0;
+    background: #10141c;
+    padding: 8px 0;
+    z-index: 10;
+  }
+  .nav-tab {
+    flex: 1;
+  }
+  .nav-tab[aria-pressed="true"] {
+    background: #1f9d8a;
+    color: #06231f;
+    font-weight: bold;
+    border-color: #1f9d8a;
+  }
+  button:hover {
+    filter: brightness(1.15);
+  }
+  button:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid #1f9d8a;
+    outline-offset: 2px;
+  }
+  button.plus {
+    background: #1c3a26;
+    border-color: #22c55e;
+    color: #a4f5c4;
+  }
+  button.minus {
+    background: #3a2a1c;
+    border-color: #f59e0b;
+    color: #ffcf7c;
+  }
+  .robot-card.r1 {
+    border-color: #14b8a6;
+  }
+  .robot-card.r2 {
+    border-color: #a855f7;
+  }
+  #tim-biru[aria-pressed="true"], #rt-dominan-biru[aria-pressed="true"] {
+    background: #3b82f6;
+    color: #06122b;
+    border-color: #3b82f6;
+  }
+  #tim-merah[aria-pressed="true"], #rt-dominan-merah[aria-pressed="true"] {
+    background: #ef4444;
+    color: #2b0606;
+    border-color: #ef4444;
+  }
+  #hasil-kfm, #rt-logrun-kfm {
+    background: #b8860b;
+    color: #241900;
+    border-color: #d4a017;
+    font-weight: bold;
+  }
+  #match-reset-all, #rt-reset-all {
+    background: #4a1c1c;
+    border-color: #ef4444;
+    color: #ffb4b4;
+  }
+  .seq-value {
+    font-size: 14px;
+    min-width: 6em;
+    text-align: center;
+    background: #1c2433;
+    border-radius: 6px;
+    padding: 4px 8px;
+  }
 </style>
 </head>
 <body>
+
+  <nav class="navbar">
+    <button id="nav-match" class="nav-tab" aria-pressed="true">Match</button>
+    <button id="nav-running-test" class="nav-tab" aria-pressed="false">Running Test</button>
+  </nav>
+
+  <div id="view-match">
 
   <div id="draft-banner">Draft match sebelumnya dipulihkan.</div>
 
@@ -103,14 +182,14 @@
     <button id="match-timer-reset">Reset</button>
   </div>
   <div class="columns">
-    <div class="robot-card">
+    <div class="robot-card r1">
       <strong>Robot 1 (R1)</strong>
 
       <div class="stat-row">
         <span class="label">Kotak</span>
-        <button id="r1-kotak-minus">-1</button>
+        <button class="minus" id="r1-kotak-minus">-1</button>
         <span class="count-value" id="r1-kotak-value">0</span>
-        <button id="r1-kotak-plus">+1</button>
+        <button class="plus" id="r1-kotak-plus">+1</button>
       </div>
 
       <div class="stat-row">
@@ -133,20 +212,20 @@
 
       <div class="stat-row">
         <span class="label">Retry</span>
-        <button id="r1-retry-minus">-1</button>
+        <button class="minus" id="r1-retry-minus">-1</button>
         <span class="count-value" id="r1-retry-value">0</span>
-        <button id="r1-retry-plus">+1</button>
+        <button class="plus" id="r1-retry-plus">+1</button>
       </div>
     </div>
 
-    <div class="robot-card">
+    <div class="robot-card r2">
       <strong>Robot 2 (R2)</strong>
 
       <div class="stat-row">
         <span class="label">Kotak</span>
-        <button id="r2-kotak-minus">-1</button>
+        <button class="minus" id="r2-kotak-minus">-1</button>
         <span class="count-value" id="r2-kotak-value">0</span>
-        <button id="r2-kotak-plus">+1</button>
+        <button class="plus" id="r2-kotak-plus">+1</button>
       </div>
 
       <div class="stat-row">
@@ -160,9 +239,9 @@
 
       <div class="stat-row">
         <span class="label">Retry</span>
-        <button id="r2-retry-minus">-1</button>
+        <button class="minus" id="r2-retry-minus">-1</button>
         <span class="count-value" id="r2-retry-value">0</span>
-        <button id="r2-retry-plus">+1</button>
+        <button class="plus" id="r2-retry-plus">+1</button>
       </div>
     </div>
   </div>
@@ -188,12 +267,27 @@
     <button id="generate-btn">Generate</button>
     <button id="copy-btn">Copy</button>
     <button id="share-btn" style="display:none;">Share</button>
+    <button id="match-reset-all">Reset All</button>
   </div>
   <textarea id="output" rows="20" readonly></textarea>
+
+  </div>
+
+  <div id="view-running-test" style="display:none;">
+  </div>
 
   <script src="app.js"></script>
   <script>
     var state = RobotLog.createInitialState();
+
+    function showView(view) {
+      document.getElementById('view-match').style.display = view === 'match' ? '' : 'none';
+      document.getElementById('view-running-test').style.display = view === 'running-test' ? '' : 'none';
+      document.getElementById('nav-match').setAttribute('aria-pressed', view === 'match');
+      document.getElementById('nav-running-test').setAttribute('aria-pressed', view === 'running-test');
+    }
+    document.getElementById('nav-match').addEventListener('click', function () { showView('match'); });
+    document.getElementById('nav-running-test').addEventListener('click', function () { showView('running-test'); });
 
     function todayIso() {
       var d = new Date();
@@ -324,6 +418,14 @@
       render();
     });
 
+    document.getElementById('match-reset-all').addEventListener('click', function () {
+      if (!confirm('Reset semua data Match? Form akan dikosongkan dan tidak bisa dibatalkan.')) return;
+      state = RobotLog.createInitialState();
+      state.tanggal = todayIso();
+      populateInputs();
+      render();
+    });
+
     if (navigator.share) {
       document.getElementById('share-btn').style.display = '';
     }
@@ -382,6 +484,7 @@
 
     render();
     tickLoop();
+    showView('match');
   </script>
 </body>
 </html>
