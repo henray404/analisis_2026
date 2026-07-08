@@ -274,6 +274,46 @@
   </div>
 
   <div id="view-running-test" style="display:none;">
+
+    <div id="rt-draft-banner" style="display:none; background:#654; padding:8px; border-radius:6px; margin-bottom:8px;">Draft running test sebelumnya dipulihkan.</div>
+
+    <h2>Info Tim</h2>
+    <div class="bar">
+      <input type="text" id="rt-universitas" placeholder="Nama Universitas">
+      <input type="text" id="rt-namatim" placeholder="Nama Tim">
+      <button id="rt-dominan-biru" aria-pressed="false">Dominan Biru</button>
+      <button id="rt-dominan-merah" aria-pressed="false">Dominan Merah</button>
+    </div>
+    <div class="bar">
+      <span class="label">Persentase KFM</span>
+      <span class="count-value" id="rt-kfm-value">0 / 0</span>
+    </div>
+
+    <h2>Run Timer</h2>
+    <div class="bar">
+      <span class="label">Waktu run (menit.detik.centidetik)</span>
+      <span class="time-value" id="rt-run-timer-value">00.00.00</span>
+      <button id="rt-run-timer-toggle">Start</button>
+      <button id="rt-run-timer-reset">Reset</button>
+    </div>
+
+    <div class="columns" id="rt-columns">
+    </div>
+
+    <h2>Log Run</h2>
+    <div class="bar">
+      <button id="rt-logrun-normal">Log Run</button>
+      <button id="rt-logrun-kfm">Log Run (KFM)</button>
+      <button id="rt-reset-all">Reset All</button>
+    </div>
+
+    <h2>Output</h2>
+    <div class="bar">
+      <button id="rt-generate-btn">Generate</button>
+      <button id="rt-copy-btn">Copy</button>
+      <button id="rt-share-btn" style="display:none;">Share</button>
+    </div>
+    <textarea id="rt-output" rows="20" readonly></textarea>
   </div>
 
   <script src="app.js"></script>
@@ -288,6 +328,88 @@
     }
     document.getElementById('nav-match').addEventListener('click', function () { showView('match'); });
     document.getElementById('nav-running-test').addEventListener('click', function () { showView('running-test'); });
+
+    var rtState = RobotLog.createRunningTestState();
+    var RT_DRAFT_KEY = 'robot-running-test-draft';
+
+    function saveRtDraft() {
+      localStorage.setItem(RT_DRAFT_KEY, RobotLog.serializeDraft(rtState));
+    }
+
+    function populateRtInputs() {
+      document.getElementById('rt-universitas').value = rtState.universitas || '';
+      document.getElementById('rt-namatim').value = rtState.namaTim || '';
+    }
+
+    function renderRt() {
+      document.getElementById('rt-dominan-biru').setAttribute('aria-pressed', rtState.dominan === 'biru');
+      document.getElementById('rt-dominan-merah').setAttribute('aria-pressed', rtState.dominan === 'merah');
+      document.getElementById('rt-kfm-value').textContent = rtState.kfmCount + ' / ' + rtState.totalPermainan;
+      document.getElementById('rt-run-timer-toggle').textContent = rtState.runTimer.running ? 'Stop' : 'Start';
+      saveRtDraft();
+    }
+
+    document.getElementById('rt-universitas').addEventListener('input', function (e) {
+      rtState.universitas = e.target.value;
+      saveRtDraft();
+    });
+    document.getElementById('rt-namatim').addEventListener('input', function (e) {
+      rtState.namaTim = e.target.value;
+      saveRtDraft();
+    });
+    document.getElementById('rt-dominan-biru').addEventListener('click', function () {
+      rtState.dominan = 'biru';
+      renderRt();
+    });
+    document.getElementById('rt-dominan-merah').addEventListener('click', function () {
+      rtState.dominan = 'merah';
+      renderRt();
+    });
+
+    document.getElementById('rt-run-timer-toggle').addEventListener('click', function () {
+      var sw = rtState.runTimer;
+      rtState.runTimer = sw.running
+        ? RobotLog.stopStopwatch(sw, Date.now())
+        : RobotLog.startStopwatch(sw, Date.now());
+      renderRt();
+    });
+    document.getElementById('rt-run-timer-reset').addEventListener('click', function () {
+      rtState.runTimer = RobotLog.resetStopwatch();
+      renderRt();
+    });
+
+    document.getElementById('rt-reset-all').addEventListener('click', function () {
+      if (!confirm('Reset semua data Running Test (termasuk history KFM/total permainan)? Tindakan ini tidak bisa dibatalkan.')) return;
+      rtState = RobotLog.createRunningTestState();
+      populateRtInputs();
+      renderRt();
+    });
+
+    document.getElementById('rt-generate-btn').addEventListener('click', function () {
+      document.getElementById('rt-output').value = rtState.log.join('\n\n');
+    });
+    document.getElementById('rt-copy-btn').addEventListener('click', function () {
+      var output = document.getElementById('rt-output');
+      var text = output.value;
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(function () {
+          output.select();
+          document.execCommand('copy');
+        });
+      } else {
+        output.select();
+        document.execCommand('copy');
+      }
+    });
+    document.getElementById('rt-share-btn').addEventListener('click', function () {
+      var text = document.getElementById('rt-output').value;
+      if (!text) return;
+      navigator.share({ text: text }).catch(function () {});
+    });
+    if (navigator.share) {
+      document.getElementById('rt-share-btn').style.display = '';
+    }
 
     function todayIso() {
       var d = new Date();
@@ -460,6 +582,7 @@
 
     function tickLoop() {
       document.getElementById('match-timer-value').textContent = RobotLog.formatMatchTime(RobotLog.getElapsedSecondsPrecise(state.matchTimer, Date.now()));
+      document.getElementById('rt-run-timer-value').textContent = RobotLog.formatMatchTime(RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now()));
       requestAnimationFrame(tickLoop);
     }
 
@@ -485,6 +608,14 @@
     render();
     tickLoop();
     showView('match');
+
+    var rtRestored = RobotLog.deserializeDraft(localStorage.getItem(RT_DRAFT_KEY));
+    if (rtRestored) {
+      rtState = rtRestored;
+      document.getElementById('rt-draft-banner').style.display = 'block';
+    }
+    populateRtInputs();
+    renderRt();
   </script>
 </body>
 </html>
