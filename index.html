@@ -401,6 +401,86 @@
           <input type="number" id="rt-r1-deltaangkat" value="0">
         </div>
       </div>
+
+      <div class="robot-card r2">
+        <strong>Robot 2 (R2)</strong>
+
+        <div class="stat-row">
+          <span class="label">Keberhasilan ambil spearhead</span>
+          <span class="count-value" id="rt-r2-spearhead-value">0 / 0</span>
+          <button class="plus" id="rt-r2-spearhead-berhasil">Berhasil</button>
+          <button class="minus" id="rt-r2-spearhead-gagal">Gagal</button>
+        </div>
+
+        <div class="stat-row">
+          <input type="text" id="rt-r2-seringindex" placeholder="Sering ambil spearhead di index">
+        </div>
+
+        <div class="stat-row">
+          <span class="label">Waktu ambil spearhead</span>
+          <span class="time-value" id="rt-r2-waktuspearhead-value">0 : 0</span>
+          <button id="rt-r2-waktuspearhead-catat">Catat</button>
+        </div>
+        <div class="stat-row">
+          <input type="number" id="rt-r2-waktuspearhead-manual" placeholder="edit manual (detik)">
+        </div>
+
+        <div class="stat-row">
+          <span class="label">Storage KFS</span>
+          <button class="minus" id="rt-r2-storagekfs-minus">-1</button>
+          <span class="count-value" id="rt-r2-storagekfs-value">0</span>
+          <button class="plus" id="rt-r2-storagekfs-plus">+1</button>
+        </div>
+
+        <div class="stat-row">
+          <span class="label">Waktu melewati forest</span>
+          <span class="time-value" id="rt-r2-forest-value">0 : 0</span>
+          <button id="rt-r2-forest-catat">Catat</button>
+        </div>
+        <div class="stat-row">
+          <input type="number" id="rt-r2-forest-manual" placeholder="edit manual (detik)">
+        </div>
+
+        <div class="stat-row">
+          <span class="label">Delta waktu melewati forest (detik)</span>
+          <input type="number" id="rt-r2-deltaforest" value="0">
+        </div>
+
+        <div class="stat-row">
+          <input type="text" id="rt-r2-seringerror" placeholder="Sering error di index">
+        </div>
+
+        <div class="stat-row">
+          <span class="label">Waktu masuk ke arena</span>
+          <span class="time-value" id="rt-r2-masukarena-value">0 : 0</span>
+          <button id="rt-r2-masukarena-catat">Catat</button>
+        </div>
+        <div class="stat-row">
+          <input type="number" id="rt-r2-masukarena-manual" placeholder="edit manual (detik)">
+        </div>
+
+        <div class="stat-row">
+          <span class="label">Urutan taruh kfs</span>
+          <span class="seq-value" id="rt-r2-urutan-value">-</span>
+        </div>
+        <div class="stat-row">
+          <button id="rt-r2-urutan-tengah">Tengah</button>
+          <button id="rt-r2-urutan-kanan">Kanan</button>
+          <button id="rt-r2-urutan-kiri">Kiri</button>
+          <button id="rt-r2-urutan-atas">Atas</button>
+          <button id="rt-r2-urutan-undo">Undo</button>
+          <button id="rt-r2-urutan-clear">Clear</button>
+        </div>
+
+        <div class="stat-row">
+          <span class="label">Waktu taruh kfs di rak</span>
+          <span class="time-value" id="rt-r2-taruhrak-value">0 : 0</span>
+          <button id="rt-r2-taruhrak-catat">Catat</button>
+        </div>
+        <div class="stat-row">
+          <input type="number" id="rt-r2-taruhrak-manual" placeholder="edit manual (detik)">
+        </div>
+      </div>
     </div>
 
     <h2>Log Run</h2>
@@ -445,6 +525,9 @@
       document.getElementById('rt-r1-kesusahan').value = rtState.run.r1.kesusahanIndex;
       document.getElementById('rt-r1-tusukrow').value = rtState.run.r1.tusukRow;
       document.getElementById('rt-r1-deltaangkat').value = rtState.run.r1.deltaAngkatR2;
+      document.getElementById('rt-r2-seringindex').value = rtState.run.r2.seringIndexSpearhead;
+      document.getElementById('rt-r2-deltaforest').value = rtState.run.r2.deltaForest;
+      document.getElementById('rt-r2-seringerror').value = rtState.run.r2.seringErrorIndex;
     }
 
     function renderRt() {
@@ -464,6 +547,15 @@
       document.getElementById('rt-r1-urutan-value').textContent = RobotLog.formatSequence(r1.urutanRak) || '-';
       document.getElementById('rt-r1-taruhrak-value').textContent = RobotLog.formatMenitDetik(r1.waktuTaruhRak);
       document.getElementById('rt-r1-retryzona3-value').textContent = RobotLog.formatMenitDetik(r1.waktuRetryZona3);
+
+      var r2 = rtState.run.r2;
+      document.getElementById('rt-r2-spearhead-value').textContent = RobotLog.formatRatio(r2.spearhead);
+      document.getElementById('rt-r2-waktuspearhead-value').textContent = RobotLog.formatMenitDetik(r2.waktuSpearhead);
+      document.getElementById('rt-r2-storagekfs-value').textContent = r2.storageKfs;
+      document.getElementById('rt-r2-forest-value').textContent = RobotLog.formatMenitDetik(r2.waktuForest);
+      document.getElementById('rt-r2-masukarena-value').textContent = RobotLog.formatMenitDetik(r2.waktuMasukArena);
+      document.getElementById('rt-r2-urutan-value').textContent = RobotLog.formatSequence(r2.urutanRak) || '-';
+      document.getElementById('rt-r2-taruhrak-value').textContent = RobotLog.formatMenitDetik(r2.waktuTaruhRak);
 
       saveRtDraft();
     }
@@ -595,6 +687,17 @@
     wireRtMark('rt-r1-retryzona3', 'r1', 'waktuRetryZona3');
     wireRtText('rt-r1-tusukrow', 'r1', 'tusukRow');
     wireRtNumber('rt-r1-deltaangkat', 'r1', 'deltaAngkatR2');
+
+    wireRtRatio('rt-r2-spearhead', 'r2', 'spearhead');
+    wireRtText('rt-r2-seringindex', 'r2', 'seringIndexSpearhead');
+    wireRtMark('rt-r2-waktuspearhead', 'r2', 'waktuSpearhead');
+    wireRtCounter('rt-r2-storagekfs', 'r2', 'storageKfs');
+    wireRtMark('rt-r2-forest', 'r2', 'waktuForest');
+    wireRtNumber('rt-r2-deltaforest', 'r2', 'deltaForest');
+    wireRtText('rt-r2-seringerror', 'r2', 'seringErrorIndex');
+    wireRtMark('rt-r2-masukarena', 'r2', 'waktuMasukArena');
+    wireRtSequence('rt-r2-urutan', 'r2', 'urutanRak', ['tengah', 'kanan', 'kiri', 'atas']);
+    wireRtMark('rt-r2-taruhrak', 'r2', 'waktuTaruhRak');
 
     document.getElementById('rt-generate-btn').addEventListener('click', function () {
       document.getElementById('rt-output').value = rtState.log.join('\n\n');
