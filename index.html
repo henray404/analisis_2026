@@ -30,6 +30,16 @@
     background: #222;
     color: #eee;
   }
+  .bar select {
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #222;
+    color: #eee;
+    min-height: 44px;
+    cursor: pointer;
+  }
   button {
     font-size: 16px;
     padding: 12px 16px;
@@ -59,6 +69,67 @@
     margin-bottom: 16px;
   }
   .stat-row .label { font-size: 13px; flex: 1; }
+  .kfs-section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 240px));
+    justify-content: start;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .kfs-block {
+    border: 1px solid #444;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .kfs-block-header {
+    background: #9e9e9e;
+    color: #111;
+    font-weight: bold;
+    text-align: center;
+    padding: 14px 8px;
+  }
+  .kfs-grid {
+    display: flex;
+    flex-direction: column;
+  }
+  .kfs-grid-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    aspect-ratio: 3 / 1;   /* 3 kolom -> tiap cell jadi kotak */
+  }
+  .kfs-grid-row select {
+    height: 100%;
+    width: 100%;
+    background: #2e7d32;   /* default: hijau (medium) */
+    color: #fff;
+    border: 1px solid #1b4d1f;
+    border-radius: 0;
+    padding: 2px;
+    font-size: 13px;
+    text-align: center;
+    text-align-last: center;
+    cursor: pointer;
+  }
+  .kfs-grid-row select:hover { filter: brightness(1.12); }
+  /* Warna cell = POSISI di grid (tetap, bukan dari nilai). Pola:
+       D M D
+       M L M
+       L M D
+       M D M   (D=hijau tua, L=olive) */
+  .kfs-grid-row:nth-child(1) select:nth-child(1),
+  .kfs-grid-row:nth-child(1) select:nth-child(3),
+  .kfs-grid-row:nth-child(3) select:nth-child(3),
+  .kfs-grid-row:nth-child(4) select:nth-child(2) { background: #33691e; }
+  .kfs-grid-row:nth-child(2) select:nth-child(2),
+  .kfs-grid-row:nth-child(3) select:nth-child(1) { background: #9caf50; color: #111; }
+  .sync-status { font-size: 12px; font-weight: normal; color: #8bc34a; }
+
+  @media (max-width: 640px) {
+    body { padding: 8px; }
+    .kfs-section { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .columns { grid-template-columns: 1fr; }
+    .kfs-grid-row select { font-size: 12px; }
+  }
   .count-value, .time-value {
     font-size: 20px;
     font-weight: bold;
@@ -279,10 +350,15 @@
 
     <h2>Info Tim</h2>
     <div class="bar">
-      <input type="text" id="rt-universitas" placeholder="Nama Universitas">
-      <input type="text" id="rt-namatim" placeholder="Nama Tim">
+      <select id="rt-universitas"><option value="">Pilih Universitas…</option></select>
+      <select id="rt-namatim"><option value="">Pilih Tim…</option></select>
       <button id="rt-dominan-biru" aria-pressed="false">Dominan Biru</button>
       <button id="rt-dominan-merah" aria-pressed="false">Dominan Merah</button>
+    </div>
+    <div class="bar">
+      <span class="label">Isi data untuk robot</span>
+      <button id="rt-active-robot-r1" aria-pressed="true">R1</button>
+      <button id="rt-active-robot-r2" aria-pressed="false">R2</button>
     </div>
     <div class="bar">
       <span class="label">Persentase KFM</span>
@@ -297,6 +373,61 @@
       <span class="time-value" id="rt-run-timer-value">00.00.00</span>
       <button id="rt-run-timer-toggle">Start</button>
       <button id="rt-run-timer-reset">Reset</button>
+    </div>
+
+    <h2>Penempatan KFS <span class="sync-status" id="rt-kfs-sync-status"></span></h2>
+    <div class="kfs-section">
+      <div class="kfs-block">
+        <div class="kfs-block-header">Letakan KFS (Yang sering dipakai)</div>
+        <div class="kfs-grid" id="rt-kfssering-grid">
+          <div class="kfs-grid-row">
+            <select data-row="0" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="0" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="0" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          </div>
+          <div class="kfs-grid-row">
+            <select data-row="1" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="1" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="1" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          </div>
+          <div class="kfs-grid-row">
+            <select data-row="2" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="2" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="2" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          </div>
+          <div class="kfs-grid-row">
+            <select data-row="3" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="3" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="3" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="kfs-block">
+        <div class="kfs-block-header">Kelemahan Posisi KFS</div>
+        <div class="kfs-grid" id="rt-kfslemah-grid">
+          <div class="kfs-grid-row">
+            <select data-row="0" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="0" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="0" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          </div>
+          <div class="kfs-grid-row">
+            <select data-row="1" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="1" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="1" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          </div>
+          <div class="kfs-grid-row">
+            <select data-row="2" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="2" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="2" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          </div>
+          <div class="kfs-grid-row">
+            <select data-row="3" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="3" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+            <select data-row="3" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="columns" id="rt-columns">
@@ -490,12 +621,15 @@
       <button id="rt-generate-btn">Generate</button>
       <button id="rt-copy-btn">Copy</button>
       <button id="rt-share-btn" style="display:none;">Share</button>
+      <button id="rt-send-sheet">Kirim ke Sheet</button>
       <button id="rt-reset-all">Reset All</button>
     </div>
+    <span id="rt-send-sheet-status"></span>
     <textarea id="rt-output" rows="20" readonly></textarea>
   </div>
 
   <script src="app.js"></script>
+  <script src="config.js"></script>
   <script>
     var state = RobotLog.createInitialState();
 
@@ -514,6 +648,72 @@
     function saveRtDraft() {
       localStorage.setItem(RT_DRAFT_KEY, RobotLog.serializeDraft(rtState));
     }
+
+    // --- KFS grid two-way sync with Google Sheet (push on change + poll every 15s) ---
+    var kfsPushTimer = null;
+    var kfsLastPushedAt = 0;
+
+    function kfsSyncEnabled() {
+      return typeof CONFIG !== 'undefined' && CONFIG.RT_SHEET_WEBHOOK_URL && tabName();
+    }
+
+    function setSyncStatus(text) {
+      document.getElementById('rt-kfs-sync-status').textContent = text ? '• ' + text : '';
+    }
+
+    function clockNow() {
+      var d = new Date();
+      function p(n) { return n < 10 ? '0' + n : '' + n; }
+      return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+
+    function pushKfsToSheet() {
+      if (!kfsSyncEnabled()) return;
+      clearTimeout(kfsPushTimer);
+      setSyncStatus('menyimpan…');
+      kfsPushTimer = setTimeout(function () {
+        fetch(CONFIG.RT_SHEET_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            type: 'kfs-sync',
+            tab: tabName(),
+            namaTim: rtState.namaTim,
+            kfsSeringGrid: rtState.kfsSeringGrid,
+            kfsKelemahanGrid: rtState.kfsKelemahanGrid
+          })
+        })
+          .then(function () { kfsLastPushedAt = Date.now(); setSyncStatus('tersimpan ' + clockNow()); })
+          .catch(function () { setSyncStatus('gagal simpan (offline?)'); });
+      }, 500);
+    }
+
+    function pollKfsFromSheet() {
+      if (!kfsSyncEnabled()) return;
+      // Jangan timpa saat user lagi buka dropdown, atau tepat setelah kita push (hindari echo).
+      var active = document.activeElement;
+      if (active && active.tagName === 'SELECT' && active.closest('.kfs-grid')) return;
+      if (Date.now() - kfsLastPushedAt < 2000) return;
+
+      var url = CONFIG.RT_SHEET_WEBHOOK_URL + '?type=kfs-sync&tim=' + encodeURIComponent(tabName());
+      fetch(url)
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!res || res.status !== 'ok' || !res.kfsSeringGrid || !res.kfsKelemahanGrid) return;
+          var incoming = JSON.stringify([res.kfsSeringGrid, res.kfsKelemahanGrid]);
+          var current = JSON.stringify([rtState.kfsSeringGrid, rtState.kfsKelemahanGrid]);
+          if (incoming !== current) {
+            rtState.kfsSeringGrid = res.kfsSeringGrid;
+            rtState.kfsKelemahanGrid = res.kfsKelemahanGrid;
+            renderKfs();
+            saveRtDraft();
+            setSyncStatus('diperbarui dari sheet ' + clockNow());
+          }
+        })
+        .catch(function () { setSyncStatus('offline'); });
+    }
+
+    setInterval(pollKfsFromSheet, 15000);
 
     function populateRtInputs() {
       document.getElementById('rt-universitas').value = rtState.universitas || '';
@@ -553,17 +753,91 @@
       document.getElementById('rt-r2-urutan-value').textContent = RobotLog.formatSequence(r2.urutanRak) || '-';
       document.getElementById('rt-r2-taruhrak-value').textContent = RobotLog.formatMenitDetik(r2.waktuTaruhRak);
 
+      renderKfs();
       saveRtDraft();
     }
 
-    document.getElementById('rt-universitas').addEventListener('input', function (e) {
+    function renderKfs() {
+      renderKfsGrid('rt-kfssering-grid', rtState.kfsSeringGrid);
+      renderKfsGrid('rt-kfslemah-grid', rtState.kfsKelemahanGrid);
+    }
+
+    // --- Dropdown Universitas/Tim, opsi dari daftar tab spreadsheet ("Univ - Tim") ---
+    var teamMap = {}; // { 'ITS': ['Garuda', 'Barunastra'], ... }
+
+    function tabName() {
+      return (rtState.universitas && rtState.namaTim) ? rtState.universitas + ' - ' + rtState.namaTim : '';
+    }
+
+    function fillSelect(sel, values, placeholder, selected) {
+      sel.innerHTML = '';
+      var opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = placeholder;
+      sel.appendChild(opt0);
+      values.forEach(function (v) {
+        var o = document.createElement('option');
+        o.value = v;
+        o.textContent = v;
+        if (v === selected) o.selected = true;
+        sel.appendChild(o);
+      });
+    }
+
+    function populateTimDropdown() {
+      var tims = (rtState.universitas && teamMap[rtState.universitas]) ? teamMap[rtState.universitas].slice().sort() : [];
+      fillSelect(document.getElementById('rt-namatim'), tims, 'Pilih Tim…', rtState.namaTim);
+    }
+
+    function populateUnivDropdown() {
+      fillSelect(document.getElementById('rt-universitas'), Object.keys(teamMap).sort(), 'Pilih Universitas…', rtState.universitas);
+      populateTimDropdown();
+    }
+
+    function loadTeams() {
+      if (typeof CONFIG === 'undefined' || !CONFIG.RT_SHEET_WEBHOOK_URL) return;
+      fetch(CONFIG.RT_SHEET_WEBHOOK_URL + '?type=teams')
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!res || res.status !== 'ok' || !res.tabs) return;
+          teamMap = {};
+          res.tabs.forEach(function (name) {
+            var parts = name.split(' - ');
+            if (parts.length < 2) return;
+            var univ = parts[0].trim();
+            var tim = parts.slice(1).join(' - ').trim();
+            if (!teamMap[univ]) teamMap[univ] = [];
+            teamMap[univ].push(tim);
+          });
+          populateUnivDropdown();
+        })
+        .catch(function () {});
+    }
+
+    document.getElementById('rt-universitas').addEventListener('change', function (e) {
       rtState.universitas = e.target.value;
+      rtState.namaTim = '';
+      populateTimDropdown();
       saveRtDraft();
+      pollKfsFromSheet();
     });
-    document.getElementById('rt-namatim').addEventListener('input', function (e) {
+    document.getElementById('rt-namatim').addEventListener('change', function (e) {
       rtState.namaTim = e.target.value;
       saveRtDraft();
+      pollKfsFromSheet();
     });
+    var RT_ACTIVE_ROBOT_KEY = 'robot-running-test-active-robot';
+    function showActiveRobot(which) {
+      document.querySelector('#rt-columns .robot-card.r1').style.display = which === 'r1' ? '' : 'none';
+      document.querySelector('#rt-columns .robot-card.r2').style.display = which === 'r2' ? '' : 'none';
+      document.getElementById('rt-active-robot-r1').setAttribute('aria-pressed', which === 'r1');
+      document.getElementById('rt-active-robot-r2').setAttribute('aria-pressed', which === 'r2');
+      localStorage.setItem(RT_ACTIVE_ROBOT_KEY, which);
+    }
+    document.getElementById('rt-active-robot-r1').addEventListener('click', function () { showActiveRobot('r1'); });
+    document.getElementById('rt-active-robot-r2').addEventListener('click', function () { showActiveRobot('r2'); });
+    showActiveRobot(localStorage.getItem(RT_ACTIVE_ROBOT_KEY) || 'r1');
+
     document.getElementById('rt-dominan-biru').addEventListener('click', function () {
       rtState.dominan = 'biru';
       renderRt();
@@ -592,6 +866,36 @@
     document.getElementById('rt-run-timer-reset').addEventListener('click', function () {
       rtState.runTimer = RobotLog.resetStopwatch();
       renderRt();
+    });
+
+    document.getElementById('rt-send-sheet').addEventListener('click', function () {
+      var statusEl = document.getElementById('rt-send-sheet-status');
+      if (!CONFIG || !CONFIG.RT_SHEET_WEBHOOK_URL) {
+        statusEl.textContent = 'Webhook URL belum diisi (config.js).';
+        return;
+      }
+      if (!tabName()) {
+        statusEl.textContent = 'Pilih Universitas & Tim dulu.';
+        return;
+      }
+      var btn = this;
+      btn.disabled = true;
+      statusEl.textContent = 'Mengirim...';
+      fetch(CONFIG.RT_SHEET_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ tab: tabName() }, rtState))
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (res) {
+          statusEl.textContent = res.status === 'ok' ? 'Terkirim ke tab "' + tabName() + '".' : 'Gagal: ' + (res.message || 'unknown error');
+        })
+        .catch(function (err) {
+          statusEl.textContent = 'Gagal kirim: ' + err.message;
+        })
+        .finally(function () {
+          btn.disabled = false;
+        });
     });
 
     document.getElementById('rt-reset-all').addEventListener('click', function () {
@@ -637,6 +941,28 @@
       });
     }
 
+    function renderKfsGrid(gridId, grid) {
+      var selects = document.getElementById(gridId).querySelectorAll('select');
+      selects.forEach(function (sel) {
+        var row = parseInt(sel.getAttribute('data-row'), 10);
+        var col = parseInt(sel.getAttribute('data-col'), 10);
+        sel.value = grid[row][col];
+      });
+    }
+
+    function wireKfsGrid(gridId, field) {
+      var selects = document.getElementById(gridId).querySelectorAll('select');
+      selects.forEach(function (sel) {
+        sel.addEventListener('change', function (e) {
+          var row = parseInt(sel.getAttribute('data-row'), 10);
+          var col = parseInt(sel.getAttribute('data-col'), 10);
+          rtState[field] = RobotLog.setGridCell(rtState[field], row, col, e.target.value);
+          saveRtDraft();
+          pushKfsToSheet();
+        });
+      });
+    }
+
     function wireRtSequence(prefix, robotKey, field, slots) {
       slots.forEach(function (slot) {
         document.getElementById(prefix + '-' + slot).addEventListener('click', function () {
@@ -676,6 +1002,8 @@
     wireRtMark('rt-r1-masukarena', 'r1', 'waktuMasukArena');
     wireRtText('rt-r1-kesusahan', 'r1', 'kesusahanIndex');
     wireRtMark('rt-r1-forestarena', 'r1', 'waktuForestArena');
+    wireKfsGrid('rt-kfssering-grid', 'kfsSeringGrid');
+    wireKfsGrid('rt-kfslemah-grid', 'kfsKelemahanGrid');
     wireRtSequence('rt-r1-urutan', 'r1', 'urutanRak', ['tengah', 'kanan', 'kiri']);
     wireRtMark('rt-r1-taruhrak', 'r1', 'waktuTaruhRak');
     wireRtMark('rt-r1-retryzona3', 'r1', 'waktuRetryZona3');
@@ -922,8 +1250,13 @@
       rtState = rtRestored;
       document.getElementById('rt-draft-banner').style.display = 'block';
     }
+    // Draft lama mungkin belum punya grid KFS di level atas — pastikan ada.
+    if (!rtState.kfsSeringGrid) rtState.kfsSeringGrid = RobotLog.createKfsGrid();
+    if (!rtState.kfsKelemahanGrid) rtState.kfsKelemahanGrid = RobotLog.createKfsGrid();
     populateRtInputs();
     renderRt();
+    loadTeams();
+    pollKfsFromSheet();
   </script>
 </body>
 </html>

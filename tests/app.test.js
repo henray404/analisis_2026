@@ -294,12 +294,15 @@ test('createRunningTestState returns the expected shape', () => {
   assert.deepEqual(state, {
     universitas: '', namaTim: '', dominan: null,
     kfm: { terambil: 0, total: 0 },
+    kfsSeringGrid: [['', '', ''], ['', '', ''], ['', '', ''], ['', '', '']],
+    kfsKelemahanGrid: [['', '', ''], ['', '', ''], ['', '', ''], ['', '', '']],
     runTimer: { running: false, startedAt: null, elapsedMs: 0 },
     run: {
       r1: {
         staf: { terambil: 0, total: 0 }, waktuStaf: 0, waktuAssembly: 0,
         storageSpear: 0, storageKfs: 0, waktuMasukArena: 0, kesusahanIndex: '',
-        waktuForestArena: 0, urutanRak: [], waktuTaruhRak: 0, waktuRetryZona3: 0,
+        waktuForestArena: 0, urutanRak: [],
+        waktuTaruhRak: 0, waktuRetryZona3: 0,
         tusukRow: '', deltaAngkatR2: 0
       },
       r2: {
@@ -329,6 +332,8 @@ test('formatRunningTestEntry produces the exact template with real values substi
   rt.run.r1.waktuMasukArena = 20;
   rt.run.r1.kesusahanIndex = '3 dan 4';
   rt.run.r1.waktuForestArena = 15;
+  rt.kfsSeringGrid = RobotLog.setGridCell(rt.kfsSeringGrid, 0, 1, 'Real');
+  rt.kfsKelemahanGrid = RobotLog.setGridCell(rt.kfsKelemahanGrid, 2, 0, 'Fake');
   rt.run.r1.urutanRak = ['tengah', 'kanan', 'kiri'];
   rt.run.r1.waktuTaruhRak = 10;
   rt.run.r1.waktuRetryZona3 = 8;
@@ -349,6 +354,9 @@ test('formatRunningTestEntry produces the exact template with real values substi
     'ITS, Garuda',
     'Persentase KFM: 1 / 4',
     'Dominan di lapangan: Biru',
+    'letakan kfs (yang sering dipakai): -, Real, - | -, -, - | -, -, - | -, -, -',
+    'kelemahan posisi kfs: -, -, - | -, -, - | Fake, -, - | -, -, -',
+    '',
     'R1:',
     'keberhasilan ambil staf: 3 / 5',
     'waktu ambil staf: 1 : 5',

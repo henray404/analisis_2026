@@ -150,6 +150,21 @@
     return [];
   }
 
+  function createKfsGrid() {
+    return [['', '', ''], ['', '', ''], ['', '', ''], ['', '', '']];
+  }
+
+  function setGridCell(grid, row, col, value) {
+    return grid.map(function (r, ri) {
+      if (ri !== row) return r;
+      return r.map(function (c, ci) { return ci === col ? value : c; });
+    });
+  }
+
+  function formatGrid(grid) {
+    return grid.map(function (row) { return row.map(function (c) { return c || '-'; }).join(', '); }).join(' | ');
+  }
+
   function formatSequence(seq) {
     return seq.join(', ');
   }
@@ -211,6 +226,8 @@
       namaTim: '',
       dominan: null,
       kfm: { terambil: 0, total: 0 },
+      kfsSeringGrid: createKfsGrid(),
+      kfsKelemahanGrid: createKfsGrid(),
       runTimer: { running: false, startedAt: null, elapsedMs: 0 },
       run: createRunningTestRun()
     };
@@ -223,6 +240,9 @@
       (rt.universitas || '_') + ', ' + (rt.namaTim || '_'),
       'Persentase KFM: ' + formatRatio(rt.kfm),
       'Dominan di lapangan: ' + dominanStr,
+      'letakan kfs (yang sering dipakai): ' + formatGrid(rt.kfsSeringGrid),
+      'kelemahan posisi kfs: ' + formatGrid(rt.kfsKelemahanGrid),
+      '',
       'R1:',
       'keberhasilan ambil staf: ' + formatRatio(run.r1.staf),
       'waktu ambil staf: ' + formatMenitDetik(run.r1.waktuStaf),
@@ -289,6 +309,9 @@
     appendSequenceSlot: appendSequenceSlot,
     undoSequenceSlot: undoSequenceSlot,
     clearSequence: clearSequence,
+    createKfsGrid: createKfsGrid,
+    setGridCell: setGridCell,
+    formatGrid: formatGrid,
     formatSequence: formatSequence,
     recordSuccess: recordSuccess,
     recordFail: recordFail,
