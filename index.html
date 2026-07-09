@@ -620,6 +620,12 @@
 
   <div id="view-running-test" style="display:none;">
 
+    <div class="match-timer">
+      <span class="big-time" id="rt-run-timer-value">00.00.00</span>
+      <button id="rt-run-timer-toggle">Start</button>
+      <button id="rt-run-timer-reset">Reset</button>
+    </div>
+
     <div id="rt-draft-banner" style="display:none; background:#654; padding:8px; border-radius:6px; margin-bottom:8px;">Draft running test sebelumnya dipulihkan.</div>
 
     <h2>Dominan</h2>
@@ -639,15 +645,8 @@
       <button class="minus" id="rt-kfm-gagal">Gagal</button>
     </div>
 
-    <h2>Run Timer</h2>
-    <div class="bar">
-      <span class="label">Waktu run (menit.detik.centidetik)</span>
-      <span class="time-value" id="rt-run-timer-value">00.00.00</span>
-      <button id="rt-run-timer-toggle">Start</button>
-      <button id="rt-run-timer-reset">Reset</button>
-    </div>
-
-    <div class="columns" id="rt-columns">
+    <div class="match-main" id="rt-columns">
+      <div class="match-col">
       <div class="robot-card r1">
         <strong>Robot 1 (R1)</strong>
 
@@ -751,7 +750,9 @@
           <input type="number" id="rt-r1-deltaangkat" value="0">
         </div>
       </div>
+      </div><!-- /match-col R1 -->
 
+      <div class="match-col">
       <div class="robot-card r2">
         <strong>Robot 2 (R2)</strong>
 
@@ -831,7 +832,8 @@
           <input type="number" id="rt-r2-taruhrak-manual" placeholder="edit manual (detik)">
         </div>
       </div>
-    </div>
+      </div><!-- /match-col R2 -->
+    </div><!-- /rt-columns match-main -->
 
     <h2>Output</h2>
     <div class="bar">
@@ -1035,16 +1037,20 @@
       pollKfsFromSheet();
     });
     var RT_ACTIVE_ROBOT_KEY = 'robot-running-test-active-robot';
-    function showActiveRobot(which) {
-      document.querySelector('#rt-columns .robot-card.r1').style.display = which === 'r1' ? '' : 'none';
-      document.querySelector('#rt-columns .robot-card.r2').style.display = which === 'r2' ? '' : 'none';
+    // Dua kartu sekarang tampil sebelahan. Toggle gak nyembunyiin, cuma
+    // nge-scroll kartu yang dipilih ke view (kepake pas HP swipe).
+    function showActiveRobot(which, doScroll) {
       document.getElementById('rt-active-robot-r1').setAttribute('aria-pressed', which === 'r1');
       document.getElementById('rt-active-robot-r2').setAttribute('aria-pressed', which === 'r2');
+      if (doScroll) {
+        var card = document.querySelector('#rt-columns .robot-card.' + which);
+        if (card) card.scrollIntoView({ block: 'nearest', inline: 'start', behavior: 'smooth' });
+      }
       localStorage.setItem(RT_ACTIVE_ROBOT_KEY, which);
     }
-    document.getElementById('rt-active-robot-r1').addEventListener('click', function () { showActiveRobot('r1'); });
-    document.getElementById('rt-active-robot-r2').addEventListener('click', function () { showActiveRobot('r2'); });
-    showActiveRobot(localStorage.getItem(RT_ACTIVE_ROBOT_KEY) || 'r1');
+    document.getElementById('rt-active-robot-r1').addEventListener('click', function () { showActiveRobot('r1', true); });
+    document.getElementById('rt-active-robot-r2').addEventListener('click', function () { showActiveRobot('r2', true); });
+    showActiveRobot(localStorage.getItem(RT_ACTIVE_ROBOT_KEY) || 'r1', false);
 
     document.getElementById('rt-dominan-biru').addEventListener('click', function () {
       rtState.dominan = 'biru';
