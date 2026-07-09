@@ -101,6 +101,26 @@
   .match-main > .match-col:nth-child(1) { background: #0e2320; }  /* Live Tracking */
   .match-main > .match-col:nth-child(2) { background: #241d0e; }  /* Arena */
   .match-main > .match-col:nth-child(3) { background: #1a1026; }  /* Penempatan KFS */
+
+  /* Running Test: R1 & R2 tetep section terpisah (ditumpuk full-width),
+     tapi field yang dicatat dibagi ke samping (grid multi-kolom). */
+  #rt-columns { flex-direction: column; }
+  #rt-columns > .match-col { flex: 1 1 auto; }
+  /* Field yang dicatat = section sendiri di bawah judul robot, dibagi 2 kolom
+     dengan garis pembatas di tengah (column-rule), mirip pemisah di Match. */
+  .rt-fields {
+    columns: 2;
+    column-gap: 24px;
+    column-rule: 1px solid #555;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #555;
+  }
+  .rt-field {
+    break-inside: avoid;      /* satu field gak kepotong antar kolom */
+    margin-bottom: 10px;
+  }
+  .rt-field .stat-row { margin-bottom: 8px; }
   .match-robot-toggle button { font-size: 17px; padding: 10px 28px; min-height: 48px; }
   #match-active-robot-r1[aria-pressed="true"] { background: #0f766e; border-color: #14b8a6; color: #d7fff9; font-weight: bold; }
   #match-active-robot-r2[aria-pressed="true"] { background: #6b21a8; border-color: #a855f7; color: #f3e2ff; font-weight: bold; }
@@ -254,6 +274,11 @@
       scroll-snap-align: start;
     }
     .columns > * { flex-basis: 100%; }   /* isi tiap kolom numpuk vertikal */
+
+    /* rt-columns dikecualiin: tetep ditumpuk full-width, field jadi 1 kolom. */
+    #rt-columns { overflow-x: visible; }
+    #rt-columns > .match-col { flex-basis: auto; }
+    .rt-fields { columns: 1; column-rule: none; }
   }
   .count-value, .time-value {
     font-size: 20px;
@@ -649,14 +674,18 @@
       <div class="match-col">
       <div class="robot-card r1">
         <strong>Robot 1 (R1)</strong>
+        <div class="rt-fields">
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Keberhasilan ambil staf</span>
           <span class="count-value" id="rt-r1-staf-value">0 / 0</span>
           <button class="plus" id="rt-r1-staf-berhasil">Berhasil</button>
           <button class="minus" id="rt-r1-staf-gagal">Gagal</button>
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu ambil staf</span>
           <span class="time-value" id="rt-r1-waktustaf-value">0 : 0</span>
@@ -665,7 +694,9 @@
         <div class="stat-row">
           <input type="number" id="rt-r1-waktustaf-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu assembly</span>
           <span class="time-value" id="rt-r1-assembly-value">0 : 0</span>
@@ -674,21 +705,27 @@
         <div class="stat-row">
           <input type="number" id="rt-r1-assembly-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Storage spear</span>
           <button class="minus" id="rt-r1-storagespear-minus">-1</button>
           <span class="count-value" id="rt-r1-storagespear-value">0</span>
           <button class="plus" id="rt-r1-storagespear-plus">+1</button>
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Storage kfs</span>
           <button class="minus" id="rt-r1-storagekfs-minus">-1</button>
           <span class="count-value" id="rt-r1-storagekfs-value">0</span>
           <button class="plus" id="rt-r1-storagekfs-plus">+1</button>
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu masuk arena</span>
           <span class="time-value" id="rt-r1-masukarena-value">0 : 0</span>
@@ -697,11 +734,15 @@
         <div class="stat-row">
           <input type="number" id="rt-r1-masukarena-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <input type="text" id="rt-r1-kesusahan" placeholder="Kesusahan ambil kfs di index">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu perjalanan forest-arena</span>
           <span class="time-value" id="rt-r1-forestarena-value">0 : 0</span>
@@ -710,7 +751,9 @@
         <div class="stat-row">
           <input type="number" id="rt-r1-forestarena-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Urutan taruh kfs di rak</span>
           <span class="seq-value" id="rt-r1-urutan-value">-</span>
@@ -722,7 +765,9 @@
           <button id="rt-r1-urutan-undo">Undo</button>
           <button id="rt-r1-urutan-clear">Clear</button>
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu taruh kfs di rak</span>
           <span class="time-value" id="rt-r1-taruhrak-value">0 : 0</span>
@@ -731,7 +776,9 @@
         <div class="stat-row">
           <input type="number" id="rt-r1-taruhrak-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu perjalanan retry zona 3 ke rak</span>
           <span class="time-value" id="rt-r1-retryzona3-value">0 : 0</span>
@@ -740,33 +787,46 @@
         <div class="stat-row">
           <input type="number" id="rt-r1-retryzona3-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <input type="text" id="rt-r1-tusukrow" placeholder="Bisa tusuk row apa saja">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Delta waktu angkat R2 (detik)</span>
           <input type="number" id="rt-r1-deltaangkat" value="0">
         </div>
+        </div>
+
+        </div><!-- /rt-fields -->
       </div>
       </div><!-- /match-col R1 -->
 
       <div class="match-col">
       <div class="robot-card r2">
         <strong>Robot 2 (R2)</strong>
+        <div class="rt-fields">
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Keberhasilan ambil spearhead</span>
           <span class="count-value" id="rt-r2-spearhead-value">0 / 0</span>
           <button class="plus" id="rt-r2-spearhead-berhasil">Berhasil</button>
           <button class="minus" id="rt-r2-spearhead-gagal">Gagal</button>
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <input type="text" id="rt-r2-seringindex" placeholder="Sering ambil spearhead di index">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu ambil spearhead</span>
           <span class="time-value" id="rt-r2-waktuspearhead-value">0 : 0</span>
@@ -775,14 +835,18 @@
         <div class="stat-row">
           <input type="number" id="rt-r2-waktuspearhead-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Storage KFS</span>
           <button class="minus" id="rt-r2-storagekfs-minus">-1</button>
           <span class="count-value" id="rt-r2-storagekfs-value">0</span>
           <button class="plus" id="rt-r2-storagekfs-plus">+1</button>
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu melewati forest</span>
           <span class="time-value" id="rt-r2-forest-value">0 : 0</span>
@@ -791,16 +855,22 @@
         <div class="stat-row">
           <input type="number" id="rt-r2-forest-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Delta waktu melewati forest (detik)</span>
           <input type="number" id="rt-r2-deltaforest" value="0">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <input type="text" id="rt-r2-seringerror" placeholder="Sering error di index">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu masuk ke arena</span>
           <span class="time-value" id="rt-r2-masukarena-value">0 : 0</span>
@@ -809,7 +879,9 @@
         <div class="stat-row">
           <input type="number" id="rt-r2-masukarena-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Urutan taruh kfs</span>
           <span class="seq-value" id="rt-r2-urutan-value">-</span>
@@ -822,7 +894,9 @@
           <button id="rt-r2-urutan-undo">Undo</button>
           <button id="rt-r2-urutan-clear">Clear</button>
         </div>
+        </div>
 
+        <div class="rt-field">
         <div class="stat-row">
           <span class="label">Waktu taruh kfs di rak</span>
           <span class="time-value" id="rt-r2-taruhrak-value">0 : 0</span>
@@ -831,6 +905,9 @@
         <div class="stat-row">
           <input type="number" id="rt-r2-taruhrak-manual" placeholder="edit manual (detik)">
         </div>
+        </div>
+
+        </div><!-- /rt-fields -->
       </div>
       </div><!-- /match-col R2 -->
     </div><!-- /rt-columns match-main -->
@@ -1037,20 +1114,23 @@
       pollKfsFromSheet();
     });
     var RT_ACTIVE_ROBOT_KEY = 'robot-running-test-active-robot';
-    // Dua kartu sekarang tampil sebelahan. Toggle gak nyembunyiin, cuma
-    // nge-scroll kartu yang dipilih ke view (kepake pas HP swipe).
-    function showActiveRobot(which, doScroll) {
+    // Pilih R1 -> section R2 disembunyiin, sebaliknya. Cuma satu robot tampil,
+    // field-nya dibagi ke samping (grid) biar gak scroll jauh.
+    function rtRobotCol(which) {
+      var card = document.querySelector('#rt-columns .robot-card.' + which);
+      return card ? card.closest('.match-col') : null;
+    }
+    function showActiveRobot(which) {
+      var r1 = rtRobotCol('r1'), r2 = rtRobotCol('r2');
+      if (r1) r1.style.display = which === 'r1' ? '' : 'none';
+      if (r2) r2.style.display = which === 'r2' ? '' : 'none';
       document.getElementById('rt-active-robot-r1').setAttribute('aria-pressed', which === 'r1');
       document.getElementById('rt-active-robot-r2').setAttribute('aria-pressed', which === 'r2');
-      if (doScroll) {
-        var card = document.querySelector('#rt-columns .robot-card.' + which);
-        if (card) card.scrollIntoView({ block: 'nearest', inline: 'start', behavior: 'smooth' });
-      }
       localStorage.setItem(RT_ACTIVE_ROBOT_KEY, which);
     }
-    document.getElementById('rt-active-robot-r1').addEventListener('click', function () { showActiveRobot('r1', true); });
-    document.getElementById('rt-active-robot-r2').addEventListener('click', function () { showActiveRobot('r2', true); });
-    showActiveRobot(localStorage.getItem(RT_ACTIVE_ROBOT_KEY) || 'r1', false);
+    document.getElementById('rt-active-robot-r1').addEventListener('click', function () { showActiveRobot('r1'); });
+    document.getElementById('rt-active-robot-r2').addEventListener('click', function () { showActiveRobot('r2'); });
+    showActiveRobot(localStorage.getItem(RT_ACTIVE_ROBOT_KEY) || 'r1');
 
     document.getElementById('rt-dominan-biru').addEventListener('click', function () {
       rtState.dominan = 'biru';
