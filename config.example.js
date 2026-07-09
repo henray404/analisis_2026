@@ -15,6 +15,15 @@ var CONFIG = {
     defs: {
       sisi: '',                         // cell penanda merah/biru. contoh: 'B28:T29'
 
+      // Peluang keberhasilan per mekanisme. Cell 2 baris: berhasil atas, total bawah.
+      // contoh: staff: 'C8:C9'. Kosong = tombolnya gak ngirim.
+      peluangR1: {
+        staff: '', assembly: '', ngambilKfs: '', storageKfs: '', masukKfs: '', naikR2: ''
+      },
+      peluangR2: {
+        spearhead: '', assembly: '', naik: '', ngambilKfs: '', storageKfs: '', masukKfs: '', naikR1: ''
+      },
+
       // Arena 1 — Martial Club
       staff: ['', '', '', ''],          // STAFF R1. contoh: 'A40:A41'
       head: ['', '', '', ''],           // HEAD R2

@@ -52,14 +52,65 @@
   }
   button[aria-pressed="true"] { background: #4a7; color: #002; font-weight: bold; }
   .columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
   }
+  /* flex, bukan grid: kalau satu kolom disembunyiin (toggle R1/R2), yang
+     tersisa ngisi penuh, bukan nyisa track kosong. */
+  .columns > * { flex: 1 1 240px; }
   .robot-card {
     border: 2px solid #444;
     border-radius: 8px;
     padding: 12px;
+  }
+  /* Match timer: sticky di bawah navbar, selalu keliatan pas scroll. */
+  .match-timer {
+    position: sticky;
+    top: 60px;                 /* tinggi navbar (button 44 + padding 16) */
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #10141c;
+    padding: 10px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #333;
+  }
+  .match-timer .big-time {
+    font-size: 44px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    min-width: 3.5em;
+    text-align: center;
+  }
+  .match-timer button { font-size: 17px; padding: 12px 26px; min-height: 52px; }
+  .match-robot-toggle { justify-content: center; }
+  /* 3 kolom: Live Tracking / arena / penempatan KFS, sebelahan biar scroll gak jauh. */
+  .match-main { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+  .match-main > .match-col {
+    flex: 1 1 300px;
+    min-width: 0;
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .match-main .pks-grid { max-width: none; }
+  /* Tiap section beda warna biar gampang dibedain. */
+  .match-main > .match-col:nth-child(1) { background: #0e2320; }  /* Live Tracking */
+  .match-main > .match-col:nth-child(2) { background: #241d0e; }  /* Arena */
+  .match-main > .match-col:nth-child(3) { background: #1a1026; }  /* Penempatan KFS */
+  .match-robot-toggle button { font-size: 17px; padding: 10px 28px; min-height: 48px; }
+  #match-active-robot-r1[aria-pressed="true"] { background: #0f766e; border-color: #14b8a6; color: #d7fff9; font-weight: bold; }
+  #match-active-robot-r2[aria-pressed="true"] { background: #6b21a8; border-color: #a855f7; color: #f3e2ff; font-weight: bold; }
+
+  .peluang-head {
+    font-weight: bold;
+    margin: 4px 0 10px;
+    padding-top: 10px;
+    border-top: 1px solid #444;
+    opacity: 0.85;
   }
   .stat-row {
     display: flex;
@@ -178,12 +229,31 @@
   }
   .pks-sub.mukul { background: #3a2a1c; border-color: #f59e0b; color: #ffcf7c; }
   .pks-sub.kfs { background: #1c3a26; border-color: #22c55e; color: #a4f5c4; }
+  /* Yang lagi kepilih dipertegas; pencet lagi = kosongin. */
+  .pks-sub.active { outline: 2px solid #eee; font-weight: bold; }
+  .pks-sub.mukul.active { background: #f59e0b; color: #2b1a06; }
+  .pks-sub.kfs.active { background: #22c55e; color: #062b13; }
 
   @media (max-width: 640px) {
     body { padding: 8px; }
     .kfs-section { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .columns { grid-template-columns: 1fr; }
     .kfs-grid-row select { font-size: 12px; }
+
+    /* HP: 3 kolom tetep ada tapi digeser horizontal (swipe), bukan dikecilin.
+       Tiap kolom ~80% layar -> tombol tetep gede & gampang dipencet.
+       Kolom sebelah ngintip dikit, tanda bisa di-swipe. */
+    .match-main {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 10px;
+    }
+    .match-main > .match-col {
+      flex: 0 0 82vw;
+      scroll-snap-align: start;
+    }
+    .columns > * { flex-basis: 100%; }   /* isi tiap kolom numpuk vertikal */
   }
   .count-value, .time-value {
     font-size: 20px;
@@ -249,6 +319,19 @@
   .robot-card.r2 {
     border-color: #a855f7;
   }
+  /* Tombol arena dibagi per robot: kolom vertikal, warna border ngikut kartu. */
+  .arena-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 2px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .arena-col.r1 { border-color: #14b8a6; }
+  .arena-col.r2 { border-color: #a855f7; }
+  .arena-col-head { font-weight: bold; opacity: 0.85; }
+  .arena-col .flag-pair { flex: 0 0 auto; }
   #rt-dominan-biru[aria-pressed="true"] {
     background: #3b82f6;
     color: #06122b;
@@ -266,6 +349,13 @@
     background: #b8860b;
     color: #241900;
     border-color: #d4a017;
+    font-weight: bold;
+  }
+  /* Kalah telak: emas dibalik jadi merah, biar gak ketuker sama Menang KFM. */
+  #hasil-kfm-kalah {
+    background: #7f1d1d;
+    color: #ffe4e4;
+    border-color: #ef4444;
     font-weight: bold;
   }
   #match-reset-all, #rt-reset-all {
@@ -291,6 +381,12 @@
   </nav>
 
   <div id="view-match">
+
+  <div class="match-timer" id="match-timer-bar">
+    <span class="big-time" id="match-timer-value">00.00.00</span>
+    <button id="match-timer-toggle">Start</button>
+    <button id="match-timer-reset">Reset</button>
+  </div>
 
   <div id="draft-banner">Draft match sebelumnya dipulihkan.</div>
 
@@ -368,13 +464,15 @@
   </div>
 
   <h2>Live Tracking</h2>
-  <div class="bar">
-    <span class="label">Match Timer (menit.detik.centidetik)</span>
-    <span class="time-value" id="match-timer-value">00.00.00</span>
-    <button id="match-timer-toggle">Start</button>
-    <button id="match-timer-reset">Reset</button>
+  <div class="bar match-robot-toggle">
+    <span class="label">Isi data untuk robot</span>
+    <button id="match-active-robot-r1" aria-pressed="true">R1</button>
+    <button id="match-active-robot-r2" aria-pressed="false">R2</button>
   </div>
-  <div class="columns">
+
+  <div class="match-main">
+  <div class="match-col">
+  <div class="columns" id="match-columns">
     <div class="robot-card r1">
       <strong>Robot 1 (R1)</strong>
 
@@ -391,6 +489,9 @@
         <span class="count-value" id="r1-retry-value">0</span>
         <button class="plus" id="r1-retry-plus">+1</button>
       </div>
+
+      <div class="peluang-head">Peluang Keberhasilan</div>
+      <div id="peluang-r1"></div>
     </div>
 
     <div class="robot-card r2">
@@ -409,58 +510,84 @@
         <span class="count-value" id="r2-retry-value">0</span>
         <button class="plus" id="r2-retry-plus">+1</button>
       </div>
+
+      <div class="peluang-head">Peluang Keberhasilan</div>
+      <div id="peluang-r2"></div>
+    </div>
+  </div>
+  </div><!-- /match-col kiri -->
+
+  <div class="match-col">
+  <h2>Arena 1 — Martial Club <span class="sync-status" id="match-sync-status"></span></h2>
+  <div class="columns">
+    <div class="arena-col r1">
+      <div class="arena-col-head">R1</div>
+      <span class="flag-pair">
+        <button class="flag" id="btn-staff">STAFF R1<span class="slot-hint" id="hint-staff"></span></button>
+        <button class="flag retry" id="btn-retry-staff" title="Retry STAFF R1">↻ RETRY</button>
+      </span>
+      <span class="flag-pair">
+        <button class="flag" id="btn-assembly">ASSEMBLY SPEARHEAD<span class="slot-hint" id="hint-assembly"></span></button>
+        <button class="flag retry" id="btn-retry-assembly" title="Retry ASSEMBLY SPEARHEAD">↻ RETRY</button>
+      </span>
+    </div>
+    <div class="arena-col r2">
+      <div class="arena-col-head">R2</div>
+      <span class="flag-pair">
+        <button class="flag" id="btn-head">HEAD R2<span class="slot-hint" id="hint-head"></span></button>
+        <button class="flag retry" id="btn-retry-head" title="Retry HEAD R2">↻ RETRY</button>
+      </span>
     </div>
   </div>
 
-  <h2>Arena 1 — Martial Club <span class="sync-status" id="match-sync-status"></span></h2>
-  <div class="bar">
-    <span class="flag-pair">
-      <button class="flag" id="btn-staff">STAFF R1<span class="slot-hint" id="hint-staff"></span></button>
-      <button class="flag retry" id="btn-retry-staff" title="Retry STAFF R1">↻ RETRY</button>
-    </span>
-    <span class="flag-pair">
-      <button class="flag" id="btn-head">HEAD R2<span class="slot-hint" id="hint-head"></span></button>
-      <button class="flag retry" id="btn-retry-head" title="Retry HEAD R2">↻ RETRY</button>
-    </span>
-  </div>
-  <div class="bar">
-    <span class="flag-pair">
-      <button class="flag" id="btn-assembly">ASSEMBLY SPEARHEAD<span class="slot-hint" id="hint-assembly"></span></button>
-      <button class="flag retry" id="btn-retry-assembly" title="Retry ASSEMBLY SPEARHEAD">↻ RETRY</button>
-    </span>
-  </div>
-
   <h2>Arena 2 — Meihua Forest</h2>
-  <div class="bar">
-    <span class="flag-pair">
-      <button class="flag" id="btn-masukmf">MASUK MF R1<span class="slot-hint" id="hint-masukmf"></span></button>
-      <button class="flag retry" id="btn-retry-masukmf" title="Retry MASUK MF R1">↻ RETRY</button>
-    </span>
-    <span class="flag-pair">
-      <button class="flag" id="btn-masukmf-r2">MASUK MF R2<span class="slot-hint" id="hint-masukmfr2"></span></button>
-      <button class="flag retry" id="btn-retry-masukmf-r2" title="Retry MASUK MF R2">↻ RETRY</button>
-    </span>
+  <div class="columns">
+    <div class="arena-col r1">
+      <div class="arena-col-head">R1</div>
+      <span class="flag-pair">
+        <button class="flag" id="btn-masukmf">MASUK MF R1<span class="slot-hint" id="hint-masukmf"></span></button>
+        <button class="flag retry" id="btn-retry-masukmf" title="Retry MASUK MF R1">↻ RETRY</button>
+      </span>
+    </div>
+    <div class="arena-col r2">
+      <div class="arena-col-head">R2</div>
+      <span class="flag-pair">
+        <button class="flag" id="btn-masukmf-r2">MASUK MF R2<span class="slot-hint" id="hint-masukmfr2"></span></button>
+        <button class="flag retry" id="btn-retry-masukmf-r2" title="Retry MASUK MF R2">↻ RETRY</button>
+      </span>
+    </div>
   </div>
 
   <h2>Arena 3 — Tic Tac Toe</h2>
-  <div class="bar">
-    <span class="flag-pair">
-      <button class="flag" id="btn-arena">MASUK ARENA 3 R1<span class="slot-hint" id="hint-arena"></span></button>
-      <button class="flag retry" id="btn-retry-arena" title="Retry MASUK ARENA 3 R1">↻ RETRY</button>
-    </span>
-    <span class="flag-pair">
-      <button class="flag" id="btn-arena-r2">MASUK ARENA 3 R2<span class="slot-hint" id="hint-arenar2"></span></button>
-      <button class="flag retry" id="btn-retry-arena-r2" title="Retry MASUK ARENA 3 R2">↻ RETRY</button>
-    </span>
+  <div class="columns">
+    <div class="arena-col r1">
+      <div class="arena-col-head">R1</div>
+      <span class="flag-pair">
+        <button class="flag" id="btn-arena">MASUK ARENA 3 R1<span class="slot-hint" id="hint-arena"></span></button>
+        <button class="flag retry" id="btn-retry-arena" title="Retry MASUK ARENA 3 R1">↻ RETRY</button>
+      </span>
+    </div>
+    <div class="arena-col r2">
+      <div class="arena-col-head">R2</div>
+      <span class="flag-pair">
+        <button class="flag" id="btn-arena-r2">MASUK ARENA 3 R2<span class="slot-hint" id="hint-arenar2"></span></button>
+        <button class="flag retry" id="btn-retry-arena-r2" title="Retry MASUK ARENA 3 R2">↻ RETRY</button>
+      </span>
+    </div>
   </div>
+  </div><!-- /match-col arena -->
+
+  <div class="match-col">
   <div class="bar"><span class="label">Penempatan KFS (per match)</span></div>
   <div class="pks-grid" id="pks-grid"></div>
+  </div><!-- /match-col kfs -->
+  </div><!-- /match-main -->
 
   <div class="bar">
     <span class="label">Poin Arena</span>
     <input type="number" id="poin-arena1" placeholder="Arena 1">
     <input type="number" id="poin-arena2" placeholder="Arena 2">
-    <input type="number" id="poin-arena3" placeholder="Arena 3">
+    <input type="number" id="poin-arena3" placeholder="Arena 3" readonly title="Dihitung otomatis dari grid Penempatan KFS">
   </div>
 
   <h2>Post-Match</h2>
@@ -473,6 +600,7 @@
     <button id="hasil-menang">Paksa Menang</button>
     <button id="hasil-kalah">Paksa Kalah</button>
     <button id="hasil-kfm">KFM (Menang Telak)</button>
+    <button id="hasil-kfm-kalah">KFM (Kalah Telak)</button>
     <button id="hasil-clear">Clear Override</button>
   </div>
   <div class="bar">
@@ -1178,10 +1306,10 @@
       document.getElementById('r2-retry-value').textContent = state.r2.retry;
       document.getElementById('match-timer-toggle').textContent = state.matchTimer.running ? 'Stop' : 'Start';
       buildPksGrid();
+      buildPeluangGrid();
       updateMatchHints();
       var hasil = RobotLog.resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
-      document.getElementById('hasil-value').textContent =
-        hasil === 'menang' ? 'Menang' : (hasil === 'kalah' ? 'Kalah' : (hasil === 'kfm' ? 'Menang KFM' : '(belum ditentukan)'));
+      document.getElementById('hasil-value').textContent = RobotLog.hasilLabel(hasil);
       saveDraft();
     }
 
@@ -1314,32 +1442,46 @@
       sendMatchRange(range, value, label);
     }
 
+    // Satu cell = satu nilai. Pencet tipe lain -> ditimpa. Pencet tipe yang lagi
+    // aktif -> dikosongin (buat ralat salah pencet). Poin arena 3 ikut berubah.
     function pressPks(i, type) {
       var defs = matchDefs();
       if (!defs) { setMatchStatus('CONFIG.MATCH.defs belum ada'); return; }
-      state.pks = RobotLog.appendPksEntry(state.pks, i, { ts: nowStamp(), type: type });
+      var current = state.pks[i];
+      var entry = (current && current.type === type) ? null : { ts: nowStamp(), type: type };
+      state.pks = RobotLog.setPksEntry(state.pks, i, entry);
+      syncPoinArena3();
       render();
-      // Cell ditimpa dengan seluruh entri (akumulasi), sama kayak referensi.
-      sendMatchRange(defs.pks[i], RobotLog.formatPksCell(state.pks[i]), 'PKS ' + PKS_LABELS[i] + ' ' + type);
+      sendMatchRange(defs.pks[i], RobotLog.formatPksCell(entry),
+        'PKS ' + PKS_LABELS[i] + ' ' + (entry ? type : 'kosong'));
+    }
+
+    // Poin arena 3 diturunkan dari grid PKS, bukan diketik manual.
+    function syncPoinArena3() {
+      var poin = RobotLog.pksPoints(state.pks);
+      if (poin === state.poin.arena3) return;
+      state.poin.arena3 = poin;
+      var defs = matchDefs();
+      if (defs) sendMatchRange(defs.poinArena3, poin, 'Poin Arena 3');
     }
 
     function buildPksGrid() {
       var g = document.getElementById('pks-grid');
       g.innerHTML = '';
       PKS_LABELS.forEach(function (label, i) {
-        var entries = state.pks[i] || [];
+        var entry = state.pks[i];
         var cell = document.createElement('div');
-        cell.className = 'pks-cell' + (entries.length ? ' stamped' : '');
+        cell.className = 'pks-cell' + (entry ? ' stamped' : '');
 
         var name = document.createElement('div');
         name.className = 'pks-name';
-        name.textContent = label;
+        name.textContent = label + ' · ' + RobotLog.PKS_ROW_POINTS[Math.floor(i / 3)] + 'p';
         cell.appendChild(name);
 
-        if (entries.length) {
+        if (entry) {
           var list = document.createElement('div');
           list.className = 'pks-ts-list';
-          list.textContent = entries.map(function (e) { return e.type + ': ' + e.ts; }).join(' | ');
+          list.textContent = entry.type + ': ' + entry.ts;
           cell.appendChild(list);
         }
 
@@ -1347,7 +1489,7 @@
         btns.className = 'pks-btns';
         PKS_TYPES.forEach(function (t) {
           var b = document.createElement('button');
-          b.className = 'pks-sub ' + t.toLowerCase();
+          b.className = 'pks-sub ' + t.toLowerCase() + (entry && entry.type === t ? ' active' : '');
           b.textContent = t;
           b.addEventListener('click', function () { pressPks(i, t); });
           btns.appendChild(b);
@@ -1355,6 +1497,70 @@
         cell.appendChild(btns);
         g.appendChild(cell);
       });
+    }
+
+    // Peluang: [key, label] per robot. key cocok sama config.peluangR1/R2 + state.peluang.
+    var PELUANG_DEFS = {
+      r1: [
+        ['staff', 'Ngambil staff'], ['assembly', 'Assembly'], ['ngambilKfs', 'Ngambil KFS'],
+        ['storageKfs', 'Storage KFS'], ['masukKfs', 'Masukin KFS'], ['naikR2', 'Naikin R2']
+      ],
+      r2: [
+        ['spearhead', 'Ngambil spearhead'], ['assembly', 'Assembly'], ['naik', 'Naik'], ['ngambilKfs', 'Ngambil KFS'],
+        ['storageKfs', 'Storage KFS'], ['masukKfs', 'Masukin KFS'], ['naikR1', 'Naik R1']
+      ]
+    };
+
+    function buildPeluangGrid() {
+      ['r1', 'r2'].forEach(function (robot) {
+        var wrap = document.getElementById('peluang-' + robot);
+        wrap.innerHTML = '';
+        PELUANG_DEFS[robot].forEach(function (d) {
+          var key = d[0], label = d[1];
+          var r = state.peluang[robot][key];
+
+          var row = document.createElement('div');
+          row.className = 'stat-row';
+
+          var name = document.createElement('span');
+          name.className = 'label';
+          name.textContent = label;
+          row.appendChild(name);
+
+          var val = document.createElement('span');
+          val.className = 'count-value';
+          val.textContent = RobotLog.formatRatio(r);
+          row.appendChild(val);
+
+          [['plus', 'Berhasil', true], ['minus', 'Gagal', false]].forEach(function (b) {
+            var btn = document.createElement('button');
+            btn.className = b[0];
+            btn.textContent = b[1];
+            btn.addEventListener('click', function () { pressPeluang(robot, key, b[2]); });
+            row.appendChild(btn);
+          });
+          wrap.appendChild(row);
+        });
+      });
+    }
+
+    function pressPeluang(robot, key, success) {
+      var r = state.peluang[robot][key];
+      state.peluang[robot][key] = success ? RobotLog.recordSuccess(r) : RobotLog.recordFail(r);
+      render();
+      sendPeluang(robot, key);
+    }
+
+    // Berhasil -> baris atas, total -> baris bawah. Kirim dua-duanya.
+    function sendPeluang(robot, key) {
+      var defs = matchDefs();
+      var range = defs && defs['peluang' + robot.toUpperCase()] && defs['peluang' + robot.toUpperCase()][key];
+      var label = robot.toUpperCase() + ' ' + key;
+      if (!range) { setMatchStatus(label + ': range belum diisi di config.js'); return; }
+      var cells = RobotLog.splitRatioRange(range);
+      var r = state.peluang[robot][key];
+      sendMatchRange(cells.berhasil, r.terambil, label + ' berhasil');
+      sendMatchRange(cells.total, r.total, label + ' total');
     }
 
     function slotHint(id, ranges, used) {
@@ -1397,6 +1603,22 @@
       render();
     });
 
+    // Toggle R1/R2 kayak Running Test: tampilin kartu + kolom arena robot terpilih.
+    var MATCH_ACTIVE_ROBOT_KEY = 'robot-match-active-robot';
+    function matchShowRobot(which) {
+      var sel = '#match-columns .robot-card.' + which + ', .arena-col.' + which;
+      var other = which === 'r1' ? 'r2' : 'r1';
+      var otherSel = '#match-columns .robot-card.' + other + ', .arena-col.' + other;
+      document.querySelectorAll(sel).forEach(function (el) { el.style.display = ''; });
+      document.querySelectorAll(otherSel).forEach(function (el) { el.style.display = 'none'; });
+      document.getElementById('match-active-robot-r1').setAttribute('aria-pressed', which === 'r1');
+      document.getElementById('match-active-robot-r2').setAttribute('aria-pressed', which === 'r2');
+      localStorage.setItem(MATCH_ACTIVE_ROBOT_KEY, which);
+    }
+    document.getElementById('match-active-robot-r1').addEventListener('click', function () { matchShowRobot('r1'); });
+    document.getElementById('match-active-robot-r2').addEventListener('click', function () { matchShowRobot('r2'); });
+    matchShowRobot(localStorage.getItem(MATCH_ACTIVE_ROBOT_KEY) || 'r1');
+
     function wirePoin(id, arenaKey, defKey, label) {
       document.getElementById(id).addEventListener('input', function (e) {
         state.poin[arenaKey] = parseInt(e.target.value, 10) || 0;
@@ -1412,7 +1634,7 @@
     wireCounter('r2-retry', 'r2', 'retry');
     wirePoin('poin-arena1', 'arena1', 'poinArena1', 'Poin Arena 1');
     wirePoin('poin-arena2', 'arena2', 'poinArena2', 'Poin Arena 2');
-    wirePoin('poin-arena3', 'arena3', 'poinArena3', 'Poin Arena 3');
+    // Arena 3 gak di-wire: nilainya dihitung dari grid PKS (syncPoinArena3).
 
     document.getElementById('skor-biru').addEventListener('input', function (e) {
       state.skorBiru = parseInt(e.target.value, 10) || 0;
@@ -1432,6 +1654,10 @@
     });
     document.getElementById('hasil-kfm').addEventListener('click', function () {
       state.hasilOverride = 'kfm';
+      render();
+    });
+    document.getElementById('hasil-kfm-kalah').addEventListener('click', function () {
+      state.hasilOverride = 'kfm-kalah';
       render();
     });
     document.getElementById('hasil-clear').addEventListener('click', function () {
@@ -1506,7 +1732,29 @@
       Object.keys(FLAG_DEFS).forEach(function (kind) {
         if (typeof state.matchSlots[kind] !== 'number') state.matchSlots[kind] = 0;
       });
-      if (!Array.isArray(state.pks) || state.pks.length !== 9) state.pks = RobotLog.createPksLog();
+      // Peluang: draft lama gak punya; isi default + lengkapi mekanisme yang kurang.
+      var freshPeluang = RobotLog.createMatchPeluang();
+      if (!state.peluang) state.peluang = freshPeluang;
+      ['r1', 'r2'].forEach(function (robot) {
+        if (!state.peluang[robot]) state.peluang[robot] = freshPeluang[robot];
+        Object.keys(freshPeluang[robot]).forEach(function (key) {
+          var r = state.peluang[robot][key];
+          if (!r || typeof r.terambil !== 'number' || typeof r.total !== 'number') {
+            state.peluang[robot][key] = { terambil: 0, total: 0 };
+          }
+        });
+      });
+      // Draft lama nyimpen tiap cell PKS sebagai array entri (akumulasi).
+      // Sekarang satu cell = satu entry: ambil yang terakhir, buang sisanya.
+      if (!Array.isArray(state.pks) || state.pks.length !== 9) {
+        state.pks = RobotLog.createPksLog();
+      } else {
+        state.pks = state.pks.map(function (cell) {
+          if (!Array.isArray(cell)) return cell || null;
+          return cell.length ? cell[cell.length - 1] : null;
+        });
+      }
+      state.poin.arena3 = RobotLog.pksPoints(state.pks);
       if (typeof state.matchNomor !== 'string') state.matchNomor = '';
       document.getElementById('draft-banner').style.display = 'block';
     } else {

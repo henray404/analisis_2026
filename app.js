@@ -29,6 +29,7 @@
         arena: 0, arenar2: 0
       },
       pks: createPksLog(),
+      peluang: createMatchPeluang(),
       skorBiru: 0,
       skorMerah: 0,
       hasilOverride: null,
@@ -36,19 +37,48 @@
     };
   }
 
-  // --- Match slot / PKS logging (format mengikuti template spreadsheet) ---
-  function createPksLog() {
-    return [[], [], [], [], [], [], [], [], []]; // grid 3x3
+  // Peluang keberhasilan per mekanisme, kepisah R1 / R2. Tiap sel {terambil, total}.
+  function createMatchPeluang() {
+    function z() { return { terambil: 0, total: 0 }; }
+    return {
+      r1: { staff: z(), assembly: z(), ngambilKfs: z(), storageKfs: z(), masukKfs: z(), naikR2: z() },
+      r2: { spearhead: z(), assembly: z(), naik: z(), ngambilKfs: z(), storageKfs: z(), masukKfs: z(), naikR1: z() }
+    };
   }
 
-  function appendPksEntry(pks, index, entry) {
+  // Cell peluang tingginya 2 baris: berhasil di atas, total di bawah.
+  // 'C8:C9' -> { berhasil: 'C8', total: 'C9' }.
+  function splitRatioRange(range) {
+    var parts = String(range).split(':');
+    return { berhasil: parts[0], total: parts[1] || parts[0] };
+  }
+
+  // --- Match slot / PKS logging (format mengikuti template spreadsheet) ---
+  // Poin naruh KFS per baris grid: atas 30, tengah 40, bawah 80.
+  var PKS_ROW_POINTS = [30, 40, 80];
+
+  // Grid 3x3. Tiap cell isinya satu entry {ts, type} atau null (kosong).
+  function createPksLog() {
+    return [null, null, null, null, null, null, null, null, null];
+  }
+
+  // Overwrite, bukan append: entry baru nimpa yang lama. entry null = kosongin.
+  function setPksEntry(pks, index, entry) {
     return pks.map(function (cell, i) {
-      return i === index ? cell.concat([entry]) : cell;
+      return i === index ? entry : cell;
     });
   }
 
-  function formatPksCell(entries) {
-    return entries.map(function (e) { return e.ts + '\n' + e.type; }).join('\n');
+  function formatPksCell(entry) {
+    return entry ? entry.ts + '\n' + entry.type : '';
+  }
+
+  // Poin arena 3 = jumlah poin baris tiap cell yang isinya KFS.
+  function pksPoints(pks) {
+    return pks.reduce(function (total, cell, i) {
+      if (!cell || cell.type !== 'KFS') return total;
+      return total + PKS_ROW_POINTS[Math.floor(i / 3)];
+    }, 0);
   }
 
   // Waktu buat sheet: "m:ss.cc" (contoh 1:23.45)
@@ -144,12 +174,19 @@
     return word ? word.charAt(0).toUpperCase() + word.slice(1) : '';
   }
 
+  // 'kfm' = menang telak, 'kfm-kalah' = kalah karena musuh KFM.
+  function hasilLabel(hasil) {
+    if (hasil === 'menang') return 'Menang';
+    if (hasil === 'kalah') return 'Kalah';
+    if (hasil === 'kfm') return 'Menang KFM';
+    if (hasil === 'kfm-kalah') return 'Kalah KFM';
+    return '(belum ditentukan)';
+  }
+
   function formatTemplate(state) {
     var tanggalStr = formatTanggalIndonesia(state.tanggal);
     var hasil = resolveHasil(state.tim, state.skorBiru, state.skorMerah, state.hasilOverride);
-    var hasilStr = hasil === 'menang' ? 'Menang' :
-      (hasil === 'kalah' ? 'Kalah' :
-      (hasil === 'kfm' ? 'Menang KFM' : '(belum ditentukan)'));
+    var hasilStr = hasilLabel(hasil);
     var tongkatSec = formatMatchTime(state.r1.tongkat);
     var assemblySec = formatMatchTime(state.r1.assembly);
     var spearheadSec = formatMatchTime(state.r2.spearhead);
@@ -342,6 +379,9 @@
     formatMatchTime: formatMatchTime,
     computeHasil: computeHasil,
     resolveHasil: resolveHasil,
+    hasilLabel: hasilLabel,
+    createMatchPeluang: createMatchPeluang,
+    splitRatioRange: splitRatioRange,
     formatTanggalIndonesia: formatTanggalIndonesia,
     formatTemplate: formatTemplate,
     serializeDraft: serializeDraft,
@@ -350,8 +390,10 @@
     undoSequenceSlot: undoSequenceSlot,
     clearSequence: clearSequence,
     createPksLog: createPksLog,
-    appendPksEntry: appendPksEntry,
+    setPksEntry: setPksEntry,
     formatPksCell: formatPksCell,
+    pksPoints: pksPoints,
+    PKS_ROW_POINTS: PKS_ROW_POINTS,
     formatSheetTime: formatSheetTime,
     shiftRange: shiftRange,
     createKfsGrid: createKfsGrid,

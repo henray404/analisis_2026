@@ -16,9 +16,30 @@ test('createInitialState returns the expected shape', () => {
       masukmf: 0, masukmfr2: 0,
       arena: 0, arenar2: 0
     },
-    pks: [[], [], [], [], [], [], [], [], []],
+    pks: [null, null, null, null, null, null, null, null, null],
+    peluang: {
+      r1: { staff: z(), assembly: z(), ngambilKfs: z(), storageKfs: z(), masukKfs: z(), naikR2: z() },
+      r2: { spearhead: z(), assembly: z(), naik: z(), ngambilKfs: z(), storageKfs: z(), masukKfs: z(), naikR1: z() }
+    },
     skorBiru: 0, skorMerah: 0, hasilOverride: null, catatan: ''
   });
+
+  function z() { return { terambil: 0, total: 0 }; }
+});
+
+test('splitRatioRange splits a 2-row cell into berhasil (top) / total (bottom)', () => {
+  assert.deepEqual(RobotLog.splitRatioRange('C8:C9'), { berhasil: 'C8', total: 'C9' });
+  assert.deepEqual(RobotLog.splitRatioRange('I18:I19'), { berhasil: 'I18', total: 'I19' });
+  assert.deepEqual(RobotLog.splitRatioRange('C8'), { berhasil: 'C8', total: 'C8' });
+});
+
+test('createMatchPeluang: 6 R1 + 7 R2 mechanisms, all zeroed independently', () => {
+  const p = RobotLog.createMatchPeluang();
+  assert.deepEqual(Object.keys(p.r1), ['staff', 'assembly', 'ngambilKfs', 'storageKfs', 'masukKfs', 'naikR2']);
+  assert.deepEqual(Object.keys(p.r2), ['spearhead', 'assembly', 'naik', 'ngambilKfs', 'storageKfs', 'masukKfs', 'naikR1']);
+  p.r1.staff = RobotLog.recordSuccess(p.r1.staff);
+  assert.deepEqual(p.r1.staff, { terambil: 1, total: 1 });
+  assert.deepEqual(p.r1.assembly, { terambil: 0, total: 0 }); // gak ikut berubah
 });
 
 test('formatSheetTime formats as m:ss.cc', () => {
@@ -33,20 +54,49 @@ test('shiftRange shifts every row number in an A1 range', () => {
   assert.equal(RobotLog.shiftRange('AB48:AB48', 64), 'AB112:AB112');
 });
 
-test('appendPksEntry appends to one cell without touching others', () => {
+test('setPksEntry overwrites one cell without touching others', () => {
   const pks = RobotLog.createPksLog();
-  const next = RobotLog.appendPksEntry(pks, 4, { ts: '1:23.45', type: 'KFS' });
-  assert.deepEqual(next[4], [{ ts: '1:23.45', type: 'KFS' }]);
-  assert.deepEqual(next[0], []);
-  assert.deepEqual(pks[4], []); // original untouched
+  const first = RobotLog.setPksEntry(pks, 4, { ts: '1:23.45', type: 'KFS' });
+  assert.deepEqual(first[4], { ts: '1:23.45', type: 'KFS' });
+  assert.equal(first[0], null);
+  assert.equal(pks[4], null); // original untouched
+
+  // KFS -> MUKUL: diganti, bukan ditambah
+  const second = RobotLog.setPksEntry(first, 4, { ts: '2:00.00', type: 'MUKUL' });
+  assert.deepEqual(second[4], { ts: '2:00.00', type: 'MUKUL' });
+
+  // null = kosongin
+  assert.equal(RobotLog.setPksEntry(second, 4, null)[4], null);
 });
 
-test('formatPksCell joins entries as "ts\\ntype" per line', () => {
-  assert.equal(RobotLog.formatPksCell([]), '');
-  assert.equal(
-    RobotLog.formatPksCell([{ ts: '0:05.10', type: 'MUKUL' }, { ts: '1:00.00', type: 'KFS' }]),
-    '0:05.10\nMUKUL\n1:00.00\nKFS'
-  );
+test('formatPksCell renders one entry as "ts\\ntype", empty cell as ""', () => {
+  assert.equal(RobotLog.formatPksCell(null), '');
+  assert.equal(RobotLog.formatPksCell({ ts: '0:05.10', type: 'MUKUL' }), '0:05.10\nMUKUL');
+});
+
+test('pksPoints counts only KFS cells, 30/40/80 per grid row', () => {
+  const empty = RobotLog.createPksLog();
+  assert.equal(RobotLog.pksPoints(empty), 0);
+
+  const kfs = (pks, i) => RobotLog.setPksEntry(pks, i, { ts: '0:01.00', type: 'KFS' });
+  assert.equal(RobotLog.pksPoints(kfs(empty, 0)), 30);   // baris atas
+  assert.equal(RobotLog.pksPoints(kfs(empty, 2)), 30);
+  assert.equal(RobotLog.pksPoints(kfs(empty, 4)), 40);   // baris tengah
+  assert.equal(RobotLog.pksPoints(kfs(empty, 8)), 80);   // baris bawah
+
+  // satu per baris = 150
+  assert.equal(RobotLog.pksPoints(kfs(kfs(kfs(empty, 1), 5), 6)), 150);
+
+  // semua 9 cell KFS = 3*(30+40+80)
+  let all = empty;
+  for (let i = 0; i < 9; i++) all = kfs(all, i);
+  assert.equal(RobotLog.pksPoints(all), 450);
+
+  // overwrite KFS -> MUKUL: poinnya ilang lagi
+  const one = kfs(empty, 8);
+  assert.equal(RobotLog.pksPoints(one), 80);
+  const flipped = RobotLog.setPksEntry(one, 8, { ts: '0:02.00', type: 'MUKUL' });
+  assert.equal(RobotLog.pksPoints(flipped), 0);
 });
 
 test('incrementCount adds one', () => {
@@ -150,6 +200,18 @@ test('computeHasil: tim merah loses when skorBiru is higher', () => {
 
 test('computeHasil: tie returns null, no silent default', () => {
   assert.equal(RobotLog.computeHasil('biru', 7, 7), null);
+});
+
+test('hasilLabel covers both KFM directions', () => {
+  assert.equal(RobotLog.hasilLabel('menang'), 'Menang');
+  assert.equal(RobotLog.hasilLabel('kalah'), 'Kalah');
+  assert.equal(RobotLog.hasilLabel('kfm'), 'Menang KFM');
+  assert.equal(RobotLog.hasilLabel('kfm-kalah'), 'Kalah KFM');
+  assert.equal(RobotLog.hasilLabel(null), '(belum ditentukan)');
+});
+
+test('resolveHasil passes kfm-kalah override through', () => {
+  assert.equal(RobotLog.resolveHasil('biru', 99, 0, 'kfm-kalah'), 'kfm-kalah');
 });
 
 test('resolveHasil: override wins over computed result', () => {
