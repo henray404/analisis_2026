@@ -245,6 +245,67 @@
     <input type="text" id="waktu" value="3 menit">
   </div>
 
+  <h2>Tim <span class="sync-status" id="rt-kfs-sync-status"></span></h2>
+  <div class="bar">
+    <select id="rt-universitas"><option value="">Pilih Tim…</option></select>
+  </div>
+
+  <h2>Penempatan KFS</h2>
+  <div class="kfs-section">
+    <div class="kfs-block">
+      <div class="kfs-block-header"><p>KFS (Yang sering dipakai)</p></div>
+      <div class="kfs-grid" id="rt-kfssering-grid">
+        <div class="kfs-grid-row">
+          <select data-row="0" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="0" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="0" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+        </div>
+        <div class="kfs-grid-row">
+          <select data-row="1" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="1" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="1" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+        </div>
+        <div class="kfs-grid-row">
+          <select data-row="2" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="2" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="2" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+        </div>
+        <div class="kfs-grid-row">
+          <select data-row="3" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="3" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="3" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="kfs-block">
+      <!-- tambahin spasi di setelah tulisan kelemahan posisi kfs -->
+      <div class="kfs-block-header"> <p>Kelemahan Posisi KFS</p> </div>
+      <div class="kfs-grid" id="rt-kfslemah-grid">
+        <div class="kfs-grid-row">
+          <select data-row="0" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="0" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="0" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+        </div>
+        <div class="kfs-grid-row">
+          <select data-row="1" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="1" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="1" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+        </div>
+        <div class="kfs-grid-row">
+          <select data-row="2" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="2" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="2" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+        </div>
+        <div class="kfs-grid-row">
+          <select data-row="3" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="3" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+          <select data-row="3" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <h2>Live Tracking</h2>
   <div class="bar">
     <span class="label">Match Timer (menit.detik.centidetik)</span>
@@ -348,10 +409,8 @@
 
     <div id="rt-draft-banner" style="display:none; background:#654; padding:8px; border-radius:6px; margin-bottom:8px;">Draft running test sebelumnya dipulihkan.</div>
 
-    <h2>Info Tim</h2>
+    <h2>Dominan</h2>
     <div class="bar">
-      <select id="rt-universitas"><option value="">Pilih Universitas…</option></select>
-      <select id="rt-namatim"><option value="">Pilih Tim…</option></select>
       <button id="rt-dominan-biru" aria-pressed="false">Dominan Biru</button>
       <button id="rt-dominan-merah" aria-pressed="false">Dominan Merah</button>
     </div>
@@ -373,61 +432,6 @@
       <span class="time-value" id="rt-run-timer-value">00.00.00</span>
       <button id="rt-run-timer-toggle">Start</button>
       <button id="rt-run-timer-reset">Reset</button>
-    </div>
-
-    <h2>Penempatan KFS <span class="sync-status" id="rt-kfs-sync-status"></span></h2>
-    <div class="kfs-section">
-      <div class="kfs-block">
-        <div class="kfs-block-header">Letakan KFS (Yang sering dipakai)</div>
-        <div class="kfs-grid" id="rt-kfssering-grid">
-          <div class="kfs-grid-row">
-            <select data-row="0" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="0" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="0" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-          </div>
-          <div class="kfs-grid-row">
-            <select data-row="1" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="1" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="1" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-          </div>
-          <div class="kfs-grid-row">
-            <select data-row="2" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="2" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="2" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-          </div>
-          <div class="kfs-grid-row">
-            <select data-row="3" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="3" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="3" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-          </div>
-        </div>
-      </div>
-
-      <div class="kfs-block">
-        <div class="kfs-block-header">Kelemahan Posisi KFS</div>
-        <div class="kfs-grid" id="rt-kfslemah-grid">
-          <div class="kfs-grid-row">
-            <select data-row="0" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="0" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="0" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-          </div>
-          <div class="kfs-grid-row">
-            <select data-row="1" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="1" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="1" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-          </div>
-          <div class="kfs-grid-row">
-            <select data-row="2" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="2" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="2" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-          </div>
-          <div class="kfs-grid-row">
-            <select data-row="3" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="3" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-            <select data-row="3" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="Fake">Fake</option><option value="Real">Real</option></select>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="columns" id="rt-columns">
@@ -717,7 +721,6 @@
 
     function populateRtInputs() {
       document.getElementById('rt-universitas').value = rtState.universitas || '';
-      document.getElementById('rt-namatim').value = rtState.namaTim || '';
       document.getElementById('rt-r1-kesusahan').value = rtState.run.r1.kesusahanIndex;
       document.getElementById('rt-r1-tusukrow').value = rtState.run.r1.tusukRow;
       document.getElementById('rt-r1-deltaangkat').value = rtState.run.r1.deltaAngkatR2;
@@ -762,11 +765,9 @@
       renderKfsGrid('rt-kfslemah-grid', rtState.kfsKelemahanGrid);
     }
 
-    // --- Dropdown Universitas/Tim, opsi dari daftar tab spreadsheet ("Univ - Tim") ---
-    var teamMap = {}; // { 'ITS': ['Garuda', 'Barunastra'], ... }
-
+    // --- Dropdown Tim, opsi = daftar tab spreadsheet (1 tab = 1 tim). ---
     function tabName() {
-      return (rtState.universitas && rtState.namaTim) ? rtState.universitas + ' - ' + rtState.namaTim : '';
+      return rtState.universitas || '';
     }
 
     function fillSelect(sel, values, placeholder, selected) {
@@ -784,45 +785,37 @@
       });
     }
 
-    function populateTimDropdown() {
-      var tims = (rtState.universitas && teamMap[rtState.universitas]) ? teamMap[rtState.universitas].slice().sort() : [];
-      fillSelect(document.getElementById('rt-namatim'), tims, 'Pilih Tim…', rtState.namaTim);
-    }
-
-    function populateUnivDropdown() {
-      fillSelect(document.getElementById('rt-universitas'), Object.keys(teamMap).sort(), 'Pilih Universitas…', rtState.universitas);
-      populateTimDropdown();
+    function populateUnivDropdown(tabs) {
+      fillSelect(document.getElementById('rt-universitas'), tabs.slice().sort(), 'Pilih Tim…', rtState.universitas);
     }
 
     function loadTeams() {
-      if (typeof CONFIG === 'undefined' || !CONFIG.RT_SHEET_WEBHOOK_URL) return;
+      if (typeof CONFIG === 'undefined' || !CONFIG.RT_SHEET_WEBHOOK_URL) {
+        setSyncStatus('config.js belum diisi URL');
+        return;
+      }
+      setSyncStatus('muat daftar tim…');
       fetch(CONFIG.RT_SHEET_WEBHOOK_URL + '?type=teams')
         .then(function (r) { return r.json(); })
         .then(function (res) {
-          if (!res || res.status !== 'ok' || !res.tabs) return;
-          teamMap = {};
-          res.tabs.forEach(function (name) {
-            var parts = name.split(' - ');
-            if (parts.length < 2) return;
-            var univ = parts[0].trim();
-            var tim = parts.slice(1).join(' - ').trim();
-            if (!teamMap[univ]) teamMap[univ] = [];
-            teamMap[univ].push(tim);
-          });
-          populateUnivDropdown();
+          if (!res || res.status !== 'ok' || !res.tabs) {
+            setSyncStatus('respon tidak valid (deploy .gs versi baru?)');
+            return;
+          }
+          if (!res.tabs.length) {
+            setSyncStatus('gak ada tab tim (selain Template)');
+            return;
+          }
+          populateUnivDropdown(res.tabs);
+          setSyncStatus(res.tabs.length + ' tim dimuat');
         })
-        .catch(function () {});
+        .catch(function (err) {
+          setSyncStatus('gagal muat (CORS? buka via server, jangan file://)');
+        });
     }
 
     document.getElementById('rt-universitas').addEventListener('change', function (e) {
       rtState.universitas = e.target.value;
-      rtState.namaTim = '';
-      populateTimDropdown();
-      saveRtDraft();
-      pollKfsFromSheet();
-    });
-    document.getElementById('rt-namatim').addEventListener('change', function (e) {
-      rtState.namaTim = e.target.value;
       saveRtDraft();
       pollKfsFromSheet();
     });
