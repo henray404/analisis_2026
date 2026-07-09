@@ -9,7 +9,28 @@
 // Grid 4 baris x 3 kolom. A1 notation. Ganti kalau posisi di sheet beda.
 var KFS_SERING_A1 = 'U31:W34';      // "Letakan KFS (Yang sering dipakai)"
 var KFS_KELEMAHAN_A1 = 'Y31:AA34';  // "Kelemahan Posisi KFS"
+
+// Blok match: judul "MATCH n" ada di kolom A, mulai baris 28, tiap blok 33 baris.
+var MATCH_FIRST_ROW = 28;
+var MATCH_ROW_STRIDE = 33;
+var MATCH_SCAN_LIMIT = 200;         // batas aman, biar gak loop selamanya
 // --------------------------------------------------------------------------
+
+// Hitung jumlah blok match dari isi kolom A: berhenti di blok kosong pertama.
+// Sekali baca kolom A, jangan getValue() per blok (dipanggil tiap poll).
+function countMatches(sheet) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < MATCH_FIRST_ROW) return 0;
+  var colA = sheet.getRange(MATCH_FIRST_ROW, 1, lastRow - MATCH_FIRST_ROW + 1, 1).getValues();
+  var n = 0;
+  while (n < MATCH_SCAN_LIMIT) {
+    var i = n * MATCH_ROW_STRIDE;
+    if (i >= colA.length) break;
+    if (!String(colA[i][0]).trim()) break;
+    n++;
+  }
+  return n;
+}
 
 function getTeamSheet(ss, teamName, createIfMissing) {
   var sheet = ss.getSheetByName(teamName);
@@ -50,7 +71,7 @@ function json(obj) {
 }
 
 // GET ?type=teams            -> daftar nama tab (kecuali Template) untuk dropdown.
-// GET ?type=kfs-sync&tim=TAB -> baca grid KFS dari tab.
+// GET ?type=kfs-sync&tim=TAB -> baca grid KFS + jumlah match dari tab.
 function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var type = e.parameter.type;
@@ -68,6 +89,7 @@ function doGet(e) {
     if (!sheet) return json({ status: 'no-tab' });
     return json({
       status: 'ok',
+      matchCount: countMatches(sheet),
       kfsSeringGrid: readGrid(sheet, KFS_SERING_A1),
       kfsKelemahanGrid: readGrid(sheet, KFS_KELEMAHAN_A1)
     });
@@ -85,6 +107,14 @@ function doPost(e) {
     var sheet = getTeamSheet(ss, data.tab || data.namaTim || 'Unknown', true);
     writeGrid(sheet, KFS_SERING_A1, data.kfsSeringGrid || []);
     writeGrid(sheet, KFS_KELEMAHAN_A1, data.kfsKelemahanGrid || []);
+    return json({ status: 'ok' });
+  }
+
+  // Tulis satu cell (match live). { tab, range, value }
+  if (data.type === 'cell-write') {
+    var cwSheet = getTeamSheet(ss, data.tab || 'Unknown', true);
+    if (!data.range) return json({ status: 'error', message: 'no range' });
+    cwSheet.getRange(data.range).setValue(data.value == null ? '' : data.value);
     return json({ status: 'ok' });
   }
 

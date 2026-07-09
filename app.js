@@ -12,18 +12,58 @@
         kotak: 0,
         retry: 0,
         tongkat: 0,
-        assembly: 0
+        assembly: 0,
+        masukArena: 0
       },
       r2: {
         kotak: 0,
         retry: 0,
-        spearhead: 0
+        spearhead: 0,
+        masukArena: 0
       },
+      berkeliaranMF: 0,
+      poin: { arena1: 0, arena2: 0, arena3: 0 },
+      matchSlots: {
+        staff: 0, head: 0, assembly: 0,
+        masukmf: 0, masukmfr2: 0,
+        arena: 0, arenar2: 0
+      },
+      pks: createPksLog(),
       skorBiru: 0,
       skorMerah: 0,
       hasilOverride: null,
       catatan: ''
     };
+  }
+
+  // --- Match slot / PKS logging (format mengikuti template spreadsheet) ---
+  function createPksLog() {
+    return [[], [], [], [], [], [], [], [], []]; // grid 3x3
+  }
+
+  function appendPksEntry(pks, index, entry) {
+    return pks.map(function (cell, i) {
+      return i === index ? cell.concat([entry]) : cell;
+    });
+  }
+
+  function formatPksCell(entries) {
+    return entries.map(function (e) { return e.ts + '\n' + e.type; }).join('\n');
+  }
+
+  // Waktu buat sheet: "m:ss.cc" (contoh 1:23.45)
+  function formatSheetTime(totalSeconds) {
+    var t = totalSeconds > 0 ? totalSeconds : 0;
+    var whole = Math.floor(t);
+    var cc = Math.floor((t - whole) * 100);
+    return Math.floor(whole / 60) + ':' + pad2(whole % 60) + '.' + pad2(cc);
+  }
+
+  // Geser semua nomor baris dalam range A1. 'A28:C29' + 32 -> 'A60:C61'
+  function shiftRange(range, delta) {
+    return range.replace(/([A-Za-z]+)(\d+)/g, function (_m, col, row) {
+      return col + (parseInt(row, 10) + delta);
+    });
   }
 
   function incrementCount(value) {
@@ -309,6 +349,11 @@
     appendSequenceSlot: appendSequenceSlot,
     undoSequenceSlot: undoSequenceSlot,
     clearSequence: clearSequence,
+    createPksLog: createPksLog,
+    appendPksEntry: appendPksEntry,
+    formatPksCell: formatPksCell,
+    formatSheetTime: formatSheetTime,
+    shiftRange: shiftRange,
     createKfsGrid: createKfsGrid,
     setGridCell: setGridCell,
     formatGrid: formatGrid,

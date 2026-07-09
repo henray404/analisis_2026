@@ -7,10 +7,46 @@ test('createInitialState returns the expected shape', () => {
   assert.deepEqual(state, {
     tanggal: null, matchNomor: '', tim: null, waktuPertandingan: '3 menit',
     matchTimer: { running: false, startedAt: null, elapsedMs: 0 },
-    r1: { kotak: 0, retry: 0, tongkat: 0, assembly: 0 },
-    r2: { kotak: 0, retry: 0, spearhead: 0 },
+    r1: { kotak: 0, retry: 0, tongkat: 0, assembly: 0, masukArena: 0 },
+    r2: { kotak: 0, retry: 0, spearhead: 0, masukArena: 0 },
+    berkeliaranMF: 0,
+    poin: { arena1: 0, arena2: 0, arena3: 0 },
+    matchSlots: {
+      staff: 0, head: 0, assembly: 0,
+      masukmf: 0, masukmfr2: 0,
+      arena: 0, arenar2: 0
+    },
+    pks: [[], [], [], [], [], [], [], [], []],
     skorBiru: 0, skorMerah: 0, hasilOverride: null, catatan: ''
   });
+});
+
+test('formatSheetTime formats as m:ss.cc', () => {
+  assert.equal(RobotLog.formatSheetTime(0), '0:00.00');
+  assert.equal(RobotLog.formatSheetTime(83.45), '1:23.45');
+  assert.equal(RobotLog.formatSheetTime(-5), '0:00.00');
+});
+
+test('shiftRange shifts every row number in an A1 range', () => {
+  assert.equal(RobotLog.shiftRange('A28:C29', 32), 'A60:C61');
+  assert.equal(RobotLog.shiftRange('K28', 0), 'K28');
+  assert.equal(RobotLog.shiftRange('AB48:AB48', 64), 'AB112:AB112');
+});
+
+test('appendPksEntry appends to one cell without touching others', () => {
+  const pks = RobotLog.createPksLog();
+  const next = RobotLog.appendPksEntry(pks, 4, { ts: '1:23.45', type: 'KFS' });
+  assert.deepEqual(next[4], [{ ts: '1:23.45', type: 'KFS' }]);
+  assert.deepEqual(next[0], []);
+  assert.deepEqual(pks[4], []); // original untouched
+});
+
+test('formatPksCell joins entries as "ts\\ntype" per line', () => {
+  assert.equal(RobotLog.formatPksCell([]), '');
+  assert.equal(
+    RobotLog.formatPksCell([{ ts: '0:05.10', type: 'MUKUL' }, { ts: '1:00.00', type: 'KFS' }]),
+    '0:05.10\nMUKUL\n1:00.00\nKFS'
+  );
 });
 
 test('incrementCount adds one', () => {
