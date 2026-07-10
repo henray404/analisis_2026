@@ -5,10 +5,13 @@
 // Copy URL Web App ke config.js (RT_SHEET_WEBHOOK_URL).
 // ============================================================================
 
-// --- SESUAIKAN dengan posisi cell grid KFS di template kamu ---------------
-// Grid 4 baris x 3 kolom. A1 notation. Ganti kalau posisi di sheet beda.
-var KFS_SERING_A1 = 'U31:W34';      // "Letakan KFS (Yang sering dipakai)"
-var KFS_KELEMAHAN_A1 = 'Y31:AA34';  // "Kelemahan Posisi KFS"
+// --- Grid "Peletakan KFS": L38:N57, 4 baris x 3 kolom, tiap cell 5 baris -----
+// Anchor tiap cell: baris 38/43/48/53, kolom L/M/N. Cell boleh merged 5 baris.
+var KFS_BASE_ROW = 38;   // baris cell pertama
+var KFS_BASE_COL = 12;   // kolom L
+var KFS_ROWS = 4;
+var KFS_COLS = 3;
+var KFS_ROW_STEP = 5;    // tinggi tiap cell (baris)
 
 // Blok match: judul "MATCH n" ada di kolom A, mulai baris 28, tiap blok 33 baris.
 var MATCH_FIRST_ROW = 28;
@@ -43,26 +46,39 @@ function getTeamSheet(ss, teamName, createIfMissing) {
   return sheet;
 }
 
-function readGrid(sheet, a1) {
-  var values = sheet.getRange(a1).getValues();
-  return values.map(function (row) {
-    return row.map(function (cell) { return cell === null || cell === undefined ? '' : String(cell); });
-  });
+// Baris cell pertama grid KFS utk match ke-N. Template sama tiap match,
+// jadi tinggal digeser sejauh (N-1) * tinggi blok match.
+function kfsBaseRow(matchNo) {
+  var n = parseInt(matchNo, 10);
+  if (!n || n < 1) n = 1;
+  return KFS_BASE_ROW + (n - 1) * MATCH_ROW_STRIDE;
 }
 
-function writeGrid(sheet, a1, grid) {
-  var range = sheet.getRange(a1);
-  var rows = range.getNumRows();
-  var cols = range.getNumColumns();
+// Baca grid KFS: satu blok, ambil cuma baris anchor tiap cell (step 5).
+function readKfsGrid(sheet, matchNo) {
+  var base = kfsBaseRow(matchNo);
+  var block = sheet.getRange(base, KFS_BASE_COL, KFS_ROWS * KFS_ROW_STEP, KFS_COLS).getValues();
   var out = [];
-  for (var r = 0; r < rows; r++) {
+  for (var r = 0; r < KFS_ROWS; r++) {
     var row = [];
-    for (var c = 0; c < cols; c++) {
-      row.push((grid[r] && grid[r][c]) ? grid[r][c] : '');
+    for (var c = 0; c < KFS_COLS; c++) {
+      var v = block[r * KFS_ROW_STEP][c];
+      row.push(v === null || v === undefined ? '' : String(v));
     }
     out.push(row);
   }
-  range.setValues(out);
+  return out;
+}
+
+// Tulis grid KFS: set tiap cell anchor satu-satu (aman kalau cell-nya merged).
+function writeKfsGrid(sheet, grid, matchNo) {
+  var base = kfsBaseRow(matchNo);
+  for (var r = 0; r < KFS_ROWS; r++) {
+    for (var c = 0; c < KFS_COLS; c++) {
+      var val = (grid[r] && grid[r][c]) ? grid[r][c] : '';
+      sheet.getRange(base + r * KFS_ROW_STEP, KFS_BASE_COL + c).setValue(val);
+    }
+  }
 }
 
 function json(obj) {
@@ -90,8 +106,7 @@ function doGet(e) {
     return json({
       status: 'ok',
       matchCount: countMatches(sheet),
-      kfsSeringGrid: readGrid(sheet, KFS_SERING_A1),
-      kfsKelemahanGrid: readGrid(sheet, KFS_KELEMAHAN_A1)
+      kfsSeringGrid: readKfsGrid(sheet, e.parameter.match)
     });
   }
 
@@ -102,11 +117,10 @@ function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var data = JSON.parse(e.postData.contents);
 
-  // Sync grid KFS (dua arah) -> tulis ke cell tetap, bukan append row.
+  // Sync grid KFS (dua arah) -> tulis ke cell anchor L38:N57, bukan append row.
   if (data.type === 'kfs-sync') {
     var sheet = getTeamSheet(ss, data.tab || data.namaTim || 'Unknown', true);
-    writeGrid(sheet, KFS_SERING_A1, data.kfsSeringGrid || []);
-    writeGrid(sheet, KFS_KELEMAHAN_A1, data.kfsKelemahanGrid || []);
+    writeKfsGrid(sheet, data.kfsSeringGrid || [], data.match);
     return json({ status: 'ok' });
   }
 

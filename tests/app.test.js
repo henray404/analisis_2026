@@ -393,7 +393,6 @@ test('createRunningTestState returns the expected shape', () => {
     universitas: '', namaTim: '', dominan: null,
     kfm: { terambil: 0, total: 0 },
     kfsSeringGrid: [['', '', ''], ['', '', ''], ['', '', ''], ['', '', '']],
-    kfsKelemahanGrid: [['', '', ''], ['', '', ''], ['', '', ''], ['', '', '']],
     runTimer: { running: false, startedAt: null, elapsedMs: 0 },
     run: {
       r1: {
@@ -431,7 +430,6 @@ test('formatRunningTestEntry produces the exact template with real values substi
   rt.run.r1.kesusahanIndex = '3 dan 4';
   rt.run.r1.waktuForestArena = 15;
   rt.kfsSeringGrid = RobotLog.setGridCell(rt.kfsSeringGrid, 0, 1, 'Real');
-  rt.kfsKelemahanGrid = RobotLog.setGridCell(rt.kfsKelemahanGrid, 2, 0, 'Fake');
   rt.run.r1.urutanRak = ['tengah', 'kanan', 'kiri'];
   rt.run.r1.waktuTaruhRak = 10;
   rt.run.r1.waktuRetryZona3 = 8;
@@ -452,8 +450,7 @@ test('formatRunningTestEntry produces the exact template with real values substi
     'ITS, Garuda',
     'Persentase KFM: 1 / 4',
     'Dominan di lapangan: Biru',
-    'letakan kfs (yang sering dipakai): -, Real, - | -, -, - | -, -, - | -, -, -',
-    'kelemahan posisi kfs: -, -, - | -, -, - | Fake, -, - | -, -, -',
+    'peletakan kfs: -, Real, - | -, -, - | -, -, - | -, -, -',
     '',
     'R1:',
     'keberhasilan ambil staf: 3 / 5',

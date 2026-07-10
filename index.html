@@ -435,35 +435,8 @@
   <h2>Penempatan KFS</h2>
   <div class="kfs-section">
     <div class="kfs-block">
-      <div class="kfs-block-header"><p>KFS (Yang sering dipakai)</p></div>
+      <div class="kfs-block-header"><p>Peletakan KFS</p></div>
       <div class="kfs-grid" id="rt-kfssering-grid">
-        <div class="kfs-grid-row">
-          <select data-row="0" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-          <select data-row="0" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-          <select data-row="0" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-        </div>
-        <div class="kfs-grid-row">
-          <select data-row="1" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-          <select data-row="1" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-          <select data-row="1" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-        </div>
-        <div class="kfs-grid-row">
-          <select data-row="2" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-          <select data-row="2" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-          <select data-row="2" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-        </div>
-        <div class="kfs-grid-row">
-          <select data-row="3" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-          <select data-row="3" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-          <select data-row="3" data-col="2"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
-        </div>
-      </div>
-    </div>
-
-    <div class="kfs-block">
-      <!-- tambahin spasi di setelah tulisan kelemahan posisi kfs -->
-      <div class="kfs-block-header"> <p>Kelemahan Posisi KFS</p> </div>
-      <div class="kfs-grid" id="rt-kfslemah-grid">
         <div class="kfs-grid-row">
           <select data-row="0" data-col="0"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
           <select data-row="0" data-col="1"><option value="">-</option><option value="R1">R1</option><option value="FAKE">FAKE</option><option value="REAL">REAL</option></select>
@@ -975,13 +948,18 @@
             type: 'kfs-sync',
             tab: tabName(),
             namaTim: rtState.namaTim,
-            kfsSeringGrid: rtState.kfsSeringGrid,
-            kfsKelemahanGrid: rtState.kfsKelemahanGrid
+            match: kfsMatchNo(),
+            kfsSeringGrid: rtState.kfsSeringGrid
           })
         })
           .then(function () { kfsLastPushedAt = Date.now(); setSyncStatus('tersimpan ' + clockNow()); })
           .catch(function () { setSyncStatus('gagal simpan (offline?)'); });
       }, 500);
+    }
+
+    // Grid KFS ada di tiap blok match; default match 1 kalau belum dipilih.
+    function kfsMatchNo() {
+      return parseInt(state.matchNomor, 10) || 1;
     }
 
     function pollKfsFromSheet() {
@@ -991,18 +969,18 @@
       if (active && active.tagName === 'SELECT' && active.closest('.kfs-grid')) return;
       if (Date.now() - kfsLastPushedAt < 2000) return;
 
-      var url = CONFIG.RT_SHEET_WEBHOOK_URL + '?type=kfs-sync&tim=' + encodeURIComponent(tabName());
+      var url = CONFIG.RT_SHEET_WEBHOOK_URL + '?type=kfs-sync&tim=' + encodeURIComponent(tabName())
+        + '&match=' + kfsMatchNo();
       fetch(url)
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (!res || res.status !== 'ok') return;
           if (typeof res.matchCount === 'number') populateMatchDropdown(res.matchCount);
-          if (!res.kfsSeringGrid || !res.kfsKelemahanGrid) return;
-          var incoming = JSON.stringify([res.kfsSeringGrid, res.kfsKelemahanGrid]);
-          var current = JSON.stringify([rtState.kfsSeringGrid, rtState.kfsKelemahanGrid]);
+          if (!res.kfsSeringGrid) return;
+          var incoming = JSON.stringify(res.kfsSeringGrid);
+          var current = JSON.stringify(rtState.kfsSeringGrid);
           if (incoming !== current) {
             rtState.kfsSeringGrid = res.kfsSeringGrid;
-            rtState.kfsKelemahanGrid = res.kfsKelemahanGrid;
             renderKfs();
             saveRtDraft();
             setSyncStatus('diperbarui dari sheet ' + clockNow());
@@ -1056,7 +1034,6 @@
 
     function renderKfs() {
       renderKfsGrid('rt-kfssering-grid', rtState.kfsSeringGrid);
-      renderKfsGrid('rt-kfslemah-grid', rtState.kfsKelemahanGrid);
     }
 
     // --- Dropdown Tim, opsi = daftar tab spreadsheet (1 tab = 1 tim). ---
@@ -1297,7 +1274,6 @@
     wireRtText('rt-r1-kesusahan', 'r1', 'kesusahanIndex');
     wireRtMark('rt-r1-forestarena', 'r1', 'waktuForestArena');
     wireKfsGrid('rt-kfssering-grid', 'kfsSeringGrid');
-    wireKfsGrid('rt-kfslemah-grid', 'kfsKelemahanGrid');
     wireRtSequence('rt-r1-urutan', 'r1', 'urutanRak', ['tengah', 'kanan', 'kiri']);
     wireRtMark('rt-r1-taruhrak', 'r1', 'waktuTaruhRak');
     wireRtMark('rt-r1-retryzona3', 'r1', 'waktuRetryZona3');
@@ -1406,6 +1382,8 @@
     document.getElementById('match-nomor').addEventListener('input', function (e) {
       state.matchNomor = e.target.value;
       render();
+      // Grid KFS beda per match: muat ulang dari blok match yang dipilih.
+      pollKfsFromSheet();
     });
     document.getElementById('waktu').addEventListener('input', function (e) {
       state.waktuPertandingan = e.target.value;
@@ -1864,7 +1842,6 @@
     }
     // Draft lama mungkin belum punya grid KFS di level atas — pastikan ada.
     if (!rtState.kfsSeringGrid) rtState.kfsSeringGrid = RobotLog.createKfsGrid();
-    if (!rtState.kfsKelemahanGrid) rtState.kfsKelemahanGrid = RobotLog.createKfsGrid();
     populateRtInputs();
     renderRt();
     loadTeams();

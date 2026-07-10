@@ -304,7 +304,6 @@
       dominan: null,
       kfm: { terambil: 0, total: 0 },
       kfsSeringGrid: createKfsGrid(),
-      kfsKelemahanGrid: createKfsGrid(),
       runTimer: { running: false, startedAt: null, elapsedMs: 0 },
       run: createRunningTestRun()
     };
@@ -317,8 +316,7 @@
       (rt.universitas || '_') + ', ' + (rt.namaTim || '_'),
       'Persentase KFM: ' + formatRatio(rt.kfm),
       'Dominan di lapangan: ' + dominanStr,
-      'letakan kfs (yang sering dipakai): ' + formatGrid(rt.kfsSeringGrid),
-      'kelemahan posisi kfs: ' + formatGrid(rt.kfsKelemahanGrid),
+      'peletakan kfs: ' + formatGrid(rt.kfsSeringGrid),
       '',
       'R1:',
       'keberhasilan ambil staf: ' + formatRatio(run.r1.staf),
