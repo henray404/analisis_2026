@@ -81,6 +81,19 @@ function writeKfsGrid(sheet, grid, matchNo) {
   }
 }
 
+// Baca daftar cell (A1, dipisah koma) -> { 'C8': nilai, ... }. Buat sync peluang.
+function readCells(sheet, csv) {
+  var out = {};
+  if (!csv) return out;
+  csv.split(',').forEach(function (a1) {
+    a1 = a1.trim();
+    if (!a1) return;
+    var v = sheet.getRange(a1).getValue();
+    out[a1] = (v === null || v === undefined) ? '' : v;
+  });
+  return out;
+}
+
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
@@ -106,7 +119,8 @@ function doGet(e) {
     return json({
       status: 'ok',
       matchCount: countMatches(sheet),
-      kfsSeringGrid: readKfsGrid(sheet, e.parameter.match)
+      kfsSeringGrid: readKfsGrid(sheet, e.parameter.match),
+      peluangValues: readCells(sheet, e.parameter.peluang)
     });
   }
 

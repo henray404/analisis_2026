@@ -969,13 +969,20 @@
       if (active && active.tagName === 'SELECT' && active.closest('.kfs-grid')) return;
       if (Date.now() - kfsLastPushedAt < 2000) return;
 
+      // Ikutkan semua cell peluang biar sekalian kebaca (dua arah).
+      var pel = peluangCellMap();
+      var pelCells = [];
+      pel.forEach(function (m) { pelCells.push(m.berhasil, m.total); });
+
       var url = CONFIG.RT_SHEET_WEBHOOK_URL + '?type=kfs-sync&tim=' + encodeURIComponent(tabName())
-        + '&match=' + kfsMatchNo();
+        + '&match=' + kfsMatchNo()
+        + (pelCells.length ? '&peluang=' + encodeURIComponent(pelCells.join(',')) : '');
       fetch(url)
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (!res || res.status !== 'ok') return;
           if (typeof res.matchCount === 'number') populateMatchDropdown(res.matchCount);
+          applyPeluangFromSheet(res.peluangValues, pel);
           if (!res.kfsSeringGrid) return;
           var incoming = JSON.stringify(res.kfsSeringGrid);
           var current = JSON.stringify(rtState.kfsSeringGrid);
@@ -987,6 +994,22 @@
           }
         })
         .catch(function () { setSyncStatus('offline'); });
+    }
+
+    // Timpa state peluang dari nilai sheet (kalau beda). Angka non-numerik -> 0.
+    function applyPeluangFromSheet(values, pel) {
+      if (!values || !pel || !pel.length) return;
+      var changed = false;
+      pel.forEach(function (m) {
+        var b = parseInt(values[m.berhasil], 10) || 0;
+        var t = parseInt(values[m.total], 10) || 0;
+        var cur = state.peluang[m.robot][m.key];
+        if (cur.terambil !== b || cur.total !== t) {
+          state.peluang[m.robot][m.key] = { terambil: b, total: t };
+          changed = true;
+        }
+      });
+      if (changed) { buildPeluangGrid(); saveDraft(); }
     }
 
     setInterval(pollKfsFromSheet, 15000);
@@ -1615,6 +1638,44 @@
       sendPeluang(robot, key);
     }
 
+    // Peluang = data tim (blok deskripsi, baris 8-9/18-19), BUKAN per-match.
+    // Jadi cell-nya tetap, gak digeser nomor match. Dua arah: push + poll.
+    // Daftar {robot, key, berhasil, total} dari config, buat push & baca balik.
+    function peluangCellMap() {
+      var defs = matchDefs();
+      if (!defs) return [];
+      var out = [];
+      ['r1', 'r2'].forEach(function (robot) {
+        var map = defs['peluang' + robot.toUpperCase()] || {};
+        PELUANG_DEFS[robot].forEach(function (d) {
+          var range = map[d[0]];
+          if (!range) return;
+          var c = RobotLog.splitRatioRange(range);
+          out.push({ robot: robot, key: d[0], berhasil: c.berhasil, total: c.total });
+        });
+      });
+      return out;
+    }
+
+    // Tulis satu cell tetap (tanpa geser match). Cukup tim kepilih.
+    function writeCell(range, value, label) {
+      if (typeof CONFIG === 'undefined' || !CONFIG.RT_SHEET_WEBHOOK_URL) { setMatchStatus('config.js belum diisi URL'); return; }
+      if (!rtState.universitas) { setMatchStatus('pilih Tim dulu'); return; }
+      if (!range) { setMatchStatus(label + ': range belum diisi di config.js'); return; }
+      setMatchStatus('kirim ' + label + ' → ' + range + '…');
+      fetch(CONFIG.RT_SHEET_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ type: 'cell-write', tab: rtState.universitas, range: range, value: value })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          kfsLastPushedAt = Date.now();
+          setMatchStatus(res && res.status === 'ok' ? label + ' ✓' : label + ' gagal: ' + ((res && res.message) || 'error'));
+        })
+        .catch(function () { setMatchStatus(label + ' gagal kirim (CORS/offline?)'); });
+    }
+
     // Berhasil -> baris atas, total -> baris bawah. Kirim dua-duanya.
     function sendPeluang(robot, key) {
       var defs = matchDefs();
@@ -1623,8 +1684,8 @@
       if (!range) { setMatchStatus(label + ': range belum diisi di config.js'); return; }
       var cells = RobotLog.splitRatioRange(range);
       var r = state.peluang[robot][key];
-      sendMatchRange(cells.berhasil, r.terambil, label + ' berhasil');
-      sendMatchRange(cells.total, r.total, label + ' total');
+      writeCell(cells.berhasil, r.terambil, label + ' berhasil');
+      writeCell(cells.total, r.total, label + ' total');
     }
 
     function slotHint(id, ranges, used) {
