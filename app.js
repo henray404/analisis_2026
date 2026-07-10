@@ -343,7 +343,7 @@
       'waktu taruh kfs di rak: ' + formatMenitDetikMs(run.r1.waktuTaruhRak),
       'waktu perjalanan retry zona 3 ke rak: ' + formatMenitDetikMs(run.r1.waktuRetryZona3),
       'bisa tusuk row apa saja: ' + run.r1.tusukRow,
-      'delta waktu angkat R2: ' + run.r1.deltaAngkatR2,
+      'waktu angkat R2: ' + formatMenitDetikMs(run.r1.deltaAngkatR2),
       '',
       'R2:',
       'keberhasilan ambil spearhead: ' + formatRatio(run.r2.spearhead),

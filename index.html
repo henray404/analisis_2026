@@ -790,8 +790,12 @@
 
         <div class="rt-field">
         <div class="stat-row">
-          <span class="label">Delta waktu angkat R2 (detik)</span>
-          <input type="number" id="rt-r1-deltaangkat" value="0">
+          <span class="label">Waktu angkat R2</span>
+          <span class="time-value" id="rt-r1-angkatr2-value">00:00:00</span>
+          <button id="rt-r1-angkatr2-catat">Mulai</button>
+        </div>
+        <div class="stat-row">
+          <input type="number" id="rt-r1-angkatr2-manual" placeholder="edit manual (detik)">
         </div>
         </div>
 
@@ -933,6 +937,8 @@
 
     var rtState = RobotLog.createRunningTestState();
     var RT_DRAFT_KEY = 'robot-running-test-draft';
+    // Stopwatch angkat R2: null = belum mulai; angka = elapsed detik saat tombol Mulai dipencet.
+    var angkatR2Start = null;
 
     function saveRtDraft() {
       localStorage.setItem(RT_DRAFT_KEY, RobotLog.serializeDraft(rtState));
@@ -1039,7 +1045,6 @@
       document.getElementById('rt-univ-runtest').value = rtState.universitas || '';
       document.getElementById('rt-r1-kesusahan').value = rtState.run.r1.kesusahanIndex;
       document.getElementById('rt-r1-tusukrow').value = rtState.run.r1.tusukRow;
-      document.getElementById('rt-r1-deltaangkat').value = rtState.run.r1.deltaAngkatR2;
       document.getElementById('rt-r2-seringindex').value = rtState.run.r2.seringIndexSpearhead;
       document.getElementById('rt-r2-deltaforest').value = rtState.run.r2.deltaForest;
       document.getElementById('rt-r2-seringerror').value = rtState.run.r2.seringErrorIndex;
@@ -1053,25 +1058,27 @@
 
       var r1 = rtState.run.r1;
       document.getElementById('rt-r1-staf-value').textContent = RobotLog.formatRatio(r1.staf);
-      document.getElementById('rt-r1-waktustaf-value').textContent = RobotLog.formatMenitDetik(r1.waktuStaf);
-      document.getElementById('rt-r1-assembly-value').textContent = RobotLog.formatMenitDetik(r1.waktuAssembly);
+      document.getElementById('rt-r1-waktustaf-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuStaf);
+      document.getElementById('rt-r1-assembly-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuAssembly);
       document.getElementById('rt-r1-storagespear-value').textContent = r1.storageSpear;
       document.getElementById('rt-r1-storagekfs-value').textContent = r1.storageKfs;
-      document.getElementById('rt-r1-masukarena-value').textContent = RobotLog.formatMenitDetik(r1.waktuMasukArena);
+      document.getElementById('rt-r1-masukarena-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuMasukArena);
       document.getElementById('rt-r1-masukforest-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuMasukForest);
       document.getElementById('rt-r1-forestarena-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuForestArena);
       document.getElementById('rt-r1-urutan-value').textContent = RobotLog.formatSequence(r1.urutanRak) || '-';
-      document.getElementById('rt-r1-taruhrak-value').textContent = RobotLog.formatMenitDetik(r1.waktuTaruhRak);
-      document.getElementById('rt-r1-retryzona3-value').textContent = RobotLog.formatMenitDetik(r1.waktuRetryZona3);
+      document.getElementById('rt-r1-taruhrak-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuTaruhRak);
+      document.getElementById('rt-r1-retryzona3-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuRetryZona3);
+      document.getElementById('rt-r1-angkatr2-value').textContent = RobotLog.formatMenitDetikMs(r1.deltaAngkatR2);
+      document.getElementById('rt-r1-angkatr2-catat').textContent = angkatR2Start === null ? 'Mulai' : 'Selesai';
 
       var r2 = rtState.run.r2;
       document.getElementById('rt-r2-spearhead-value').textContent = RobotLog.formatRatio(r2.spearhead);
-      document.getElementById('rt-r2-waktuspearhead-value').textContent = RobotLog.formatMenitDetik(r2.waktuSpearhead);
+      document.getElementById('rt-r2-waktuspearhead-value').textContent = RobotLog.formatMenitDetikMs(r2.waktuSpearhead);
       document.getElementById('rt-r2-storagekfs-value').textContent = r2.storageKfs;
-      document.getElementById('rt-r2-forest-value').textContent = RobotLog.formatMenitDetik(r2.waktuForest);
-      document.getElementById('rt-r2-masukarena-value').textContent = RobotLog.formatMenitDetik(r2.waktuMasukArena);
+      document.getElementById('rt-r2-forest-value').textContent = RobotLog.formatMenitDetikMs(r2.waktuForest);
+      document.getElementById('rt-r2-masukarena-value').textContent = RobotLog.formatMenitDetikMs(r2.waktuMasukArena);
       document.getElementById('rt-r2-urutan-value').textContent = RobotLog.formatSequence(r2.urutanRak) || '-';
-      document.getElementById('rt-r2-taruhrak-value').textContent = RobotLog.formatMenitDetik(r2.waktuTaruhRak);
+      document.getElementById('rt-r2-taruhrak-value').textContent = RobotLog.formatMenitDetikMs(r2.waktuTaruhRak);
 
       renderKfs();
       renderLaps();
@@ -1192,6 +1199,7 @@
     document.getElementById('rt-run-timer-reset').addEventListener('click', function () {
       rtState.runTimer = RobotLog.resetStopwatch();
       rtState.laps = [];
+      angkatR2Start = null;
       renderRt();
     });
     document.getElementById('rt-lap').addEventListener('click', function () {
@@ -1237,6 +1245,7 @@
     document.getElementById('rt-reset-all').addEventListener('click', function () {
       if (!confirm('Reset semua data Running Test (termasuk Persentase KFM)? Tindakan ini tidak bisa dibatalkan.')) return;
       rtState = RobotLog.createRunningTestState();
+      angkatR2Start = null;
       populateRtInputs();
       renderRt();
     });
@@ -1373,7 +1382,25 @@
     wireRtMark('rt-r1-taruhrak', 'r1', 'waktuTaruhRak');
     wireRtMark('rt-r1-retryzona3', 'r1', 'waktuRetryZona3');
     wireRtText('rt-r1-tusukrow', 'r1', 'tusukRow');
-    wireRtNumber('rt-r1-deltaangkat', 'r1', 'deltaAngkatR2');
+    // Waktu angkat R2: pencet 1x = mulai stopwatch, pencet lagi = ambil selisih -> nilai.
+    document.getElementById('rt-r1-angkatr2-catat').addEventListener('click', function () {
+      var now = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
+      if (angkatR2Start === null) {
+        angkatR2Start = now;
+      } else {
+        rtState.run.r1.deltaAngkatR2 = Math.max(0, now - angkatR2Start);
+        angkatR2Start = null;
+      }
+      renderRt();
+    });
+    document.getElementById('rt-r1-angkatr2-manual').addEventListener('change', function (e) {
+      var seconds = RobotLog.sanitizeManualSeconds(parseFloat(e.target.value));
+      if (seconds === null) return;
+      rtState.run.r1.deltaAngkatR2 = seconds;
+      angkatR2Start = null;
+      e.target.value = '';
+      renderRt();
+    });
 
     wireRtRatio('rt-r2-spearhead', 'r2', 'spearhead');
     wireRtText('rt-r2-seringindex', 'r2', 'seringIndexSpearhead');

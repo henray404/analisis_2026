@@ -473,7 +473,7 @@ test('formatRunningTestEntry produces the exact template with real values substi
     'waktu taruh kfs di rak: 00:10:00',
     'waktu perjalanan retry zona 3 ke rak: 00:08:00',
     'bisa tusuk row apa saja: row 1 dan 2',
-    'delta waktu angkat R2: 5',
+    'waktu angkat R2: 00:05:00',
     '',
     'R2:',
     'keberhasilan ambil spearhead: 2 / 3',
