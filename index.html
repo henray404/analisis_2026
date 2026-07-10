@@ -1252,13 +1252,6 @@
       });
     }
 
-    function lapLabelOf(btn, robotKey) {
-      var row = btn.closest('.stat-row');
-      var lab = row ? row.querySelector('.label') : null;
-      var text = lab ? lab.textContent : btn.id;
-      return robotKey.toUpperCase() + ' — ' + text;
-    }
-
     function recordLap(label, seconds) {
       if (!rtState.laps) rtState.laps = [];
       rtState.laps.push({ label: label, seconds: seconds });
@@ -1274,11 +1267,8 @@
     }
 
     function wireRtMark(prefix, robotKey, field) {
-      var catatBtn = document.getElementById(prefix + '-catat');
-      catatBtn.addEventListener('click', function () {
-        var el = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
-        rtState.run[robotKey][field] = el;
-        recordLap(lapLabelOf(catatBtn, robotKey), el);
+      document.getElementById(prefix + '-catat').addEventListener('click', function () {
+        rtState.run[robotKey][field] = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
         renderRt();
       });
       document.getElementById(prefix + '-manual').addEventListener('change', function (e) {
@@ -1362,16 +1352,13 @@
     wireRtMark('rt-r1-masukarena', 'r1', 'waktuMasukArena');
     wireRtText('rt-r1-kesusahan', 'r1', 'kesusahanIndex');
     document.getElementById('rt-r1-masukforest-catat').addEventListener('click', function () {
-      var el = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
-      rtState.run.r1.waktuMasukForest = el;
-      recordLap(lapLabelOf(this, 'r1'), el);
+      rtState.run.r1.waktuMasukForest = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
       renderRt();
     });
     // Catat forest-arena = waktu sekarang - waktu masuk forest (bukan elapsed absolut).
     document.getElementById('rt-r1-forestarena-catat').addEventListener('click', function () {
       var now = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
       rtState.run.r1.waktuForestArena = Math.max(0, now - rtState.run.r1.waktuMasukForest);
-      recordLap(lapLabelOf(this, 'r1'), now);
       renderRt();
     });
     document.getElementById('rt-r1-forestarena-manual').addEventListener('change', function (e) {
