@@ -636,6 +636,11 @@
 
     <div id="rt-draft-banner" style="display:none; background:#654; padding:8px; border-radius:6px; margin-bottom:8px;">Draft running test sebelumnya dipulihkan.</div>
 
+    <h2>Tim</h2>
+    <div class="bar">
+      <select id="rt-univ-runtest"><option value="">Pilih Tim…</option></select>
+    </div>
+
     <h2>Dominan</h2>
     <div class="bar">
       <button id="rt-dominan-biru" aria-pressed="false">Dominan Biru</button>
@@ -1031,6 +1036,7 @@
 
     function populateRtInputs() {
       document.getElementById('rt-universitas').value = rtState.universitas || '';
+      document.getElementById('rt-univ-runtest').value = rtState.universitas || '';
       document.getElementById('rt-r1-kesusahan').value = rtState.run.r1.kesusahanIndex;
       document.getElementById('rt-r1-tusukrow').value = rtState.run.r1.tusukRow;
       document.getElementById('rt-r1-deltaangkat').value = rtState.run.r1.deltaAngkatR2;
@@ -1097,7 +1103,9 @@
     }
 
     function populateUnivDropdown(tabs) {
-      fillSelect(document.getElementById('rt-universitas'), tabs.slice().sort(), 'Pilih Tim…', rtState.universitas);
+      var sorted = tabs.slice().sort();
+      fillSelect(document.getElementById('rt-universitas'), sorted, 'Pilih Tim…', rtState.universitas);
+      fillSelect(document.getElementById('rt-univ-runtest'), sorted, 'Pilih Tim…', rtState.universitas);
     }
 
     function loadTeams() {
@@ -1127,8 +1135,15 @@
 
     document.getElementById('rt-universitas').addEventListener('change', function (e) {
       rtState.universitas = e.target.value;
+      document.getElementById('rt-univ-runtest').value = e.target.value;
       saveRtDraft();
       pollKfsFromSheet();
+    });
+    // Dropdown Tim di view Running Test: cuma pilih tim, tanpa sync apa pun ke sheet.
+    document.getElementById('rt-univ-runtest').addEventListener('change', function (e) {
+      rtState.universitas = e.target.value;
+      document.getElementById('rt-universitas').value = e.target.value;
+      saveRtDraft();
     });
     var RT_ACTIVE_ROBOT_KEY = 'robot-running-test-active-robot';
     // Pilih R1 -> section R2 disembunyiin, sebaliknya. Cuma satu robot tampil,
