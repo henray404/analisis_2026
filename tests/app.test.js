@@ -387,6 +387,12 @@ test('formatMenitDetik truncates fractional seconds', () => {
   assert.equal(RobotLog.formatMenitDetik(65.9), '1 : 5');
 });
 
+test('formatMenitDetikMs shows mm:ss:cc, truncated not rounded', () => {
+  assert.equal(RobotLog.formatMenitDetikMs(0), '00:00:00');
+  assert.equal(RobotLog.formatMenitDetikMs(65.99), '01:05:98');
+  assert.equal(RobotLog.formatMenitDetikMs(125.4), '02:05:40');
+});
+
 test('createRunningTestState returns the expected shape', () => {
   const state = RobotLog.createRunningTestState();
   assert.deepEqual(state, {
@@ -394,11 +400,12 @@ test('createRunningTestState returns the expected shape', () => {
     kfm: { terambil: 0, total: 0 },
     kfsSeringGrid: [['', '', ''], ['', '', ''], ['', '', ''], ['', '', '']],
     runTimer: { running: false, startedAt: null, elapsedMs: 0 },
+    laps: [],
     run: {
       r1: {
         staf: { terambil: 0, total: 0 }, waktuStaf: 0, waktuAssembly: 0,
         storageSpear: 0, storageKfs: 0, waktuMasukArena: 0, kesusahanIndex: '',
-        waktuForestArena: 0, urutanRak: [],
+        waktuMasukForest: 0, waktuForestArena: 0, urutanRak: [],
         waktuTaruhRak: 0, waktuRetryZona3: 0,
         tusukRow: '', deltaAngkatR2: 0
       },

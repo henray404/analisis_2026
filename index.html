@@ -87,6 +87,9 @@
     text-align: center;
   }
   .match-timer button { font-size: 17px; padding: 12px 26px; min-height: 52px; }
+  .rt-laps { position: sticky; top: 132px; z-index: 8; list-style: decimal inside; margin: 6px 0 12px; padding: 8px 12px; max-height: 220px; overflow-y: auto; background: #2a2a2a; border-radius: 6px; }
+  .rt-laps li { padding: 3px 0; font-variant-numeric: tabular-nums; }
+  .rt-laps .time-value { font-weight: bold; margin-left: 6px; }
   .match-robot-toggle { justify-content: center; }
   /* 3 kolom: Live Tracking / arena / penempatan KFS, sebelahan biar scroll gak jauh. */
   .match-main { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
@@ -622,7 +625,10 @@
       <span class="big-time" id="rt-run-timer-value">00.00.00</span>
       <button id="rt-run-timer-toggle">Start</button>
       <button id="rt-run-timer-reset">Reset</button>
+      <button id="rt-lap">Lap</button>
+      <button id="rt-lap-clear">Clear Lap</button>
     </div>
+    <ol id="rt-laps" class="rt-laps"></ol>
 
     <div id="rt-draft-banner" style="display:none; background:#654; padding:8px; border-radius:6px; margin-bottom:8px;">Draft running test sebelumnya dipulihkan.</div>
 
@@ -716,6 +722,11 @@
         </div>
 
         <div class="rt-field">
+        <div class="stat-row">
+          <span class="label">Masuk forest</span>
+          <span class="time-value" id="rt-r1-masukforest-value">0 : 0</span>
+          <button id="rt-r1-masukforest-catat">Catat masuk forest</button>
+        </div>
         <div class="stat-row">
           <span class="label">Waktu perjalanan forest-arena</span>
           <span class="time-value" id="rt-r1-forestarena-value">0 : 0</span>
@@ -1037,7 +1048,8 @@
       document.getElementById('rt-r1-storagespear-value').textContent = r1.storageSpear;
       document.getElementById('rt-r1-storagekfs-value').textContent = r1.storageKfs;
       document.getElementById('rt-r1-masukarena-value').textContent = RobotLog.formatMenitDetik(r1.waktuMasukArena);
-      document.getElementById('rt-r1-forestarena-value').textContent = RobotLog.formatMenitDetik(r1.waktuForestArena);
+      document.getElementById('rt-r1-masukforest-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuMasukForest);
+      document.getElementById('rt-r1-forestarena-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuForestArena);
       document.getElementById('rt-r1-urutan-value').textContent = RobotLog.formatSequence(r1.urutanRak) || '-';
       document.getElementById('rt-r1-taruhrak-value').textContent = RobotLog.formatMenitDetik(r1.waktuTaruhRak);
       document.getElementById('rt-r1-retryzona3-value').textContent = RobotLog.formatMenitDetik(r1.waktuRetryZona3);
@@ -1052,6 +1064,7 @@
       document.getElementById('rt-r2-taruhrak-value').textContent = RobotLog.formatMenitDetik(r2.waktuTaruhRak);
 
       renderKfs();
+      renderLaps();
       saveRtDraft();
     }
 
@@ -1159,6 +1172,16 @@
     });
     document.getElementById('rt-run-timer-reset').addEventListener('click', function () {
       rtState.runTimer = RobotLog.resetStopwatch();
+      rtState.laps = [];
+      renderRt();
+    });
+    document.getElementById('rt-lap').addEventListener('click', function () {
+      var el = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
+      recordLap('Lap ' + ((rtState.laps ? rtState.laps.length : 0) + 1), el);
+      renderRt();
+    });
+    document.getElementById('rt-lap-clear').addEventListener('click', function () {
+      rtState.laps = [];
       renderRt();
     });
 
@@ -1210,9 +1233,33 @@
       });
     }
 
+    function lapLabelOf(btn, robotKey) {
+      var row = btn.closest('.stat-row');
+      var lab = row ? row.querySelector('.label') : null;
+      var text = lab ? lab.textContent : btn.id;
+      return robotKey.toUpperCase() + ' — ' + text;
+    }
+
+    function recordLap(label, seconds) {
+      if (!rtState.laps) rtState.laps = [];
+      rtState.laps.push({ label: label, seconds: seconds });
+    }
+
+    function renderLaps() {
+      var ol = document.getElementById('rt-laps');
+      var laps = rtState.laps || [];
+      ol.style.display = laps.length ? 'block' : 'none';
+      ol.innerHTML = laps.map(function (l) {
+        return '<li>' + l.label + ' <span class="time-value">' + RobotLog.formatMenitDetikMs(l.seconds) + '</span></li>';
+      }).join('');
+    }
+
     function wireRtMark(prefix, robotKey, field) {
-      document.getElementById(prefix + '-catat').addEventListener('click', function () {
-        rtState.run[robotKey][field] = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
+      var catatBtn = document.getElementById(prefix + '-catat');
+      catatBtn.addEventListener('click', function () {
+        var el = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
+        rtState.run[robotKey][field] = el;
+        recordLap(lapLabelOf(catatBtn, robotKey), el);
         renderRt();
       });
       document.getElementById(prefix + '-manual').addEventListener('change', function (e) {
@@ -1295,7 +1342,26 @@
     wireRtCounter('rt-r1-storagekfs', 'r1', 'storageKfs');
     wireRtMark('rt-r1-masukarena', 'r1', 'waktuMasukArena');
     wireRtText('rt-r1-kesusahan', 'r1', 'kesusahanIndex');
-    wireRtMark('rt-r1-forestarena', 'r1', 'waktuForestArena');
+    document.getElementById('rt-r1-masukforest-catat').addEventListener('click', function () {
+      var el = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
+      rtState.run.r1.waktuMasukForest = el;
+      recordLap(lapLabelOf(this, 'r1'), el);
+      renderRt();
+    });
+    // Catat forest-arena = waktu sekarang - waktu masuk forest (bukan elapsed absolut).
+    document.getElementById('rt-r1-forestarena-catat').addEventListener('click', function () {
+      var now = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
+      rtState.run.r1.waktuForestArena = Math.max(0, now - rtState.run.r1.waktuMasukForest);
+      recordLap(lapLabelOf(this, 'r1'), now);
+      renderRt();
+    });
+    document.getElementById('rt-r1-forestarena-manual').addEventListener('change', function (e) {
+      var seconds = RobotLog.sanitizeManualSeconds(parseFloat(e.target.value));
+      if (seconds === null) return;
+      rtState.run.r1.waktuForestArena = seconds;
+      e.target.value = '';
+      renderRt();
+    });
     wireKfsGrid('rt-kfssering-grid', 'kfsSeringGrid');
     wireRtSequence('rt-r1-urutan', 'r1', 'urutanRak', ['tengah', 'kanan', 'kiri']);
     wireRtMark('rt-r1-taruhrak', 'r1', 'waktuTaruhRak');

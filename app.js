@@ -265,6 +265,15 @@
     return m + ' : ' + s;
   }
 
+  // mm:ss:cc — centidetik, dipotong bukan dibulatin.
+  function formatMenitDetikMs(totalSeconds) {
+    var totalWhole = Math.floor(totalSeconds);
+    var cs = Math.floor(totalSeconds * 100) % 100;
+    var m = Math.floor(totalWhole / 60);
+    var s = totalWhole % 60;
+    return pad2(m) + ':' + pad2(s) + ':' + pad2(cs);
+  }
+
   function createRunningTestRun() {
     return {
       r1: {
@@ -275,6 +284,7 @@
         storageKfs: 0,
         waktuMasukArena: 0,
         kesusahanIndex: '',
+        waktuMasukForest: 0,
         waktuForestArena: 0,
         urutanRak: [],
         waktuTaruhRak: 0,
@@ -305,6 +315,7 @@
       kfm: { terambil: 0, total: 0 },
       kfsSeringGrid: createKfsGrid(),
       runTimer: { running: false, startedAt: null, elapsedMs: 0 },
+      laps: [],
       run: createRunningTestRun()
     };
   }
@@ -402,6 +413,7 @@
     recordFail: recordFail,
     formatRatio: formatRatio,
     formatMenitDetik: formatMenitDetik,
+    formatMenitDetikMs: formatMenitDetikMs,
     createRunningTestRun: createRunningTestRun,
     createRunningTestState: createRunningTestState,
     formatRunningTestEntry: formatRunningTestEntry
