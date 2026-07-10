@@ -482,7 +482,7 @@ test('formatRunningTestEntry produces the exact template with real values substi
     '',
     'storage KFS: 1 kotak',
     'waktu melewati forest: 00:18:00',
-    'delta waktu melewati forest: 3',
+    'waktu melewati forest (detik): 3',
     'sering error di index: index 5',
     '',
     'waktu masuk ke arena: 00:22:00',

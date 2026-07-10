@@ -352,7 +352,7 @@
       '',
       'storage KFS: ' + run.r2.storageKfs + ' kotak',
       'waktu melewati forest: ' + formatMenitDetikMs(run.r2.waktuForest),
-      'delta waktu melewati forest: ' + run.r2.deltaForest,
+      'waktu melewati forest (detik): ' + run.r2.deltaForest,
       'sering error di index: ' + run.r2.seringErrorIndex,
       '',
       'waktu masuk ke arena: ' + formatMenitDetikMs(run.r2.waktuMasukArena),
