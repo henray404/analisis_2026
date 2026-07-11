@@ -1669,11 +1669,12 @@
 
     // isRetry: pakai range + counter slot yang sama, cuma isinya "waktu\nRETRY"
     // dan gak nyentuh waktu buat teks copy (percobaan gagal, bukan waktu terbaik).
-    function pressFlag(kind, isRetry) {
+    function pressFlag(kind, isRetry, labelOverride) {
       var defs = matchDefs();
       if (!defs) { setMatchStatus('CONFIG.MATCH.defs belum ada'); return; }
       var f = FLAG_DEFS[kind];
-      var label = isRetry ? 'RETRY ' + f.label : f.label;
+      var teks = labelOverride || f.label;
+      var label = isRetry ? 'RETRY ' + teks : teks;
       var ranges = defs[f.defKey] || [];
       if (!ranges.length) { setMatchStatus(label + ': range belum diisi di config.js'); return; }
       var used = state.matchSlots[kind] || 0;
@@ -1690,7 +1691,7 @@
         value = ts + '\nRETRY';
       } else {
         if (f.copy) f.copy(state, elapsed);
-        value = f.timeOnly ? ts : ts + '\n' + f.label;
+        value = f.timeOnly ? ts : ts + '\n' + teks;
         if (f.arenaPoin) addArenaPoin(f.arenaPoin, 10);   // assembly -> arena 1 +10 (retry gak)
       }
 
@@ -1900,10 +1901,10 @@
 
     // AMBIL KFS -> catat waktu ke slot MASUK MF (tempat sama) + poin arena 2 +10.
     document.getElementById('btn-ambilkfs-r1').addEventListener('click', function () {
-      pressFlag('masukmf', false); addArenaPoin('arena2', 10);
+      pressFlag('masukmf', false, 'AMBIL KFS R1'); addArenaPoin('arena2', 10);
     });
     document.getElementById('btn-ambilkfs-r2').addEventListener('click', function () {
-      pressFlag('masukmfr2', false); addArenaPoin('arena2', 10);
+      pressFlag('masukmfr2', false, 'AMBIL KFS R2'); addArenaPoin('arena2', 10);
     });
 
     document.getElementById('match-timer-toggle').addEventListener('click', function () {
