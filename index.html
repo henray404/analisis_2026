@@ -413,9 +413,10 @@
   <div id="view-match">
 
   <div class="match-timer" id="match-timer-bar">
-    <span class="big-time" id="match-timer-value">00.00.00</span>
+    <span class="big-time" id="match-timer-value">03.00.00</span>
     <button id="match-timer-toggle">Start</button>
     <button id="match-timer-reset">Reset</button>
+    <input type="text" id="match-duration" value="3:00" title="Durasi timer mundur (m:ss)" style="width:64px; text-align:center;">
   </div>
 
   <div id="draft-banner">Draft match sebelumnya dipulihkan.</div>
@@ -1530,6 +1531,8 @@
       document.getElementById('r2-kotak-value').textContent = state.r2.kotak;
       document.getElementById('r2-retry-value').textContent = state.r2.retry;
       document.getElementById('match-timer-toggle').textContent = state.matchTimer.running ? 'Stop' : 'Start';
+      var durEl = document.getElementById('match-duration');
+      if (durEl !== document.activeElement) durEl.value = formatDurasi(state.matchDurationSec || 180);
       buildPksGrid();
       buildPeluangGrid();
       updateMatchHints();
@@ -1621,8 +1624,31 @@
         .catch(function () { setMatchStatus(label + ' gagal kirim (CORS/offline?)'); });
     }
 
+    // Durasi timer mundur: "m:ss" / "m" / "ss" / detik -> detik. Default 180.
+    function parseDurasi(str) {
+      str = String(str).trim();
+      if (!str) return null;
+      var parts = str.split(':');
+      var sec;
+      if (parts.length === 2) {
+        sec = (parseInt(parts[0], 10) || 0) * 60 + (parseFloat(parts[1]) || 0);
+      } else {
+        sec = parseFloat(str) || 0;
+        if (sec <= 20) sec = sec * 60; // angka kecil dianggap menit
+      }
+      return sec > 0 ? sec : null;
+    }
+    function formatDurasi(totalSeconds) {
+      var whole = Math.floor(totalSeconds);
+      return Math.floor(whole / 60) + ':' + (whole % 60 < 10 ? '0' : '') + (whole % 60);
+    }
+    // Sisa waktu di timer mundur (yang dicatat & ditampilkan).
+    function matchClockSeconds() {
+      return RobotLog.getRemainingSecondsPrecise(state.matchTimer, state.matchDurationSec || 180, Date.now());
+    }
+
     function nowStamp() {
-      return RobotLog.formatSheetTime(RobotLog.getElapsedSecondsPrecise(state.matchTimer, Date.now()));
+      return RobotLog.formatSheetTime(matchClockSeconds());
     }
 
     // Tiap tombol nulis ke slot berikutnya. Jumlah slot = panjang array di config.
@@ -1652,7 +1678,7 @@
       if (used >= ranges.length) { setMatchStatus(label + ': ' + ranges.length + ' slot penuh'); return; }
 
       var ts = nowStamp();
-      var elapsed = RobotLog.getElapsedSecondsPrecise(state.matchTimer, Date.now());
+      var elapsed = matchClockSeconds();
       var range = ranges[used];
       state.matchSlots[kind] = used + 1;
 
@@ -1867,6 +1893,13 @@
       state.matchTimer = RobotLog.resetStopwatch();
       render();
     });
+    document.getElementById('match-duration').addEventListener('change', function (e) {
+      var sec = parseDurasi(e.target.value);
+      if (sec === null) { e.target.value = formatDurasi(state.matchDurationSec || 180); return; }
+      state.matchDurationSec = sec;
+      saveDraft();
+      render();
+    });
 
     // Toggle R1/R2 kayak Running Test: tampilin kartu + kolom arena robot terpilih.
     var MATCH_ACTIVE_ROBOT_KEY = 'robot-match-active-robot';
@@ -1975,7 +2008,7 @@
     });
 
     function tickLoop() {
-      document.getElementById('match-timer-value').textContent = RobotLog.formatMatchTime(RobotLog.getElapsedSecondsPrecise(state.matchTimer, Date.now()));
+      document.getElementById('match-timer-value').textContent = RobotLog.formatMatchTime(matchClockSeconds());
       var rtNow = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
       document.getElementById('rt-run-timer-value').textContent = RobotLog.formatMatchTime(rtNow);
       // Field yang lagi "Mulai" (belum Selesai): tampilkan waktu jalan biar keliatan gerak.
@@ -1996,6 +2029,7 @@
     if (restored) {
       state = restored;
       if (!state.matchTimer) state.matchTimer = RobotLog.resetStopwatch();
+      if (typeof state.matchDurationSec !== 'number') state.matchDurationSec = 180;
       if (typeof state.r1.tongkat !== 'number') state.r1.tongkat = 0;
       if (typeof state.r1.assembly !== 'number') state.r1.assembly = 0;
       if (typeof state.r2.spearhead !== 'number') state.r2.spearhead = 0;

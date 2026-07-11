@@ -8,6 +8,7 @@
       tim: null,
       waktuPertandingan: '3 menit',
       matchTimer: { running: false, startedAt: null, elapsedMs: 0 },
+      matchDurationSec: 180,
       r1: {
         kotak: 0,
         retry: 0,
@@ -131,6 +132,13 @@
   function getElapsedSecondsPrecise(sw, now) {
     var ms = sw.running ? sw.elapsedMs + (now - sw.startedAt) : sw.elapsedMs;
     return ms / 1000;
+  }
+
+  // Timer mundur: sisa detik = durasi - elapsed, di-clamp 0..durasi.
+  function getRemainingSecondsPrecise(sw, durationSec, now) {
+    var dur = Number(durationSec) || 0;
+    var rem = dur - getElapsedSecondsPrecise(sw, now);
+    return rem < 0 ? 0 : rem;
   }
 
   function pad2(n) {
@@ -387,6 +395,7 @@
     sanitizeManualSeconds: sanitizeManualSeconds,
     getElapsedSeconds: getElapsedSeconds,
     getElapsedSecondsPrecise: getElapsedSecondsPrecise,
+    getRemainingSecondsPrecise: getRemainingSecondsPrecise,
     formatMatchTime: formatMatchTime,
     computeHasil: computeHasil,
     resolveHasil: resolveHasil,

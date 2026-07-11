@@ -7,6 +7,7 @@ test('createInitialState returns the expected shape', () => {
   assert.deepEqual(state, {
     tanggal: null, matchNomor: '', tim: null, waktuPertandingan: '3 menit',
     matchTimer: { running: false, startedAt: null, elapsedMs: 0 },
+    matchDurationSec: 180,
     r1: { kotak: 0, retry: 0, tongkat: 0, assembly: 0, masukArena: 0 },
     r2: { kotak: 0, retry: 0, spearhead: 0, masukArena: 0 },
     berkeliaranMF: 0,
@@ -169,6 +170,13 @@ test('getElapsedSecondsPrecise returns unrounded fractional seconds when running
 test('getElapsedSecondsPrecise returns unrounded fractional seconds when stopped', () => {
   const sw = { running: false, startedAt: null, elapsedMs: 4300 };
   assert.equal(RobotLog.getElapsedSecondsPrecise(sw, 99999), 4.3);
+});
+
+test('getRemainingSecondsPrecise counts down and clamps at 0', () => {
+  const sw = { running: true, startedAt: 1000, elapsedMs: 2000 };   // elapsed 5.5s at now=4500
+  assert.equal(RobotLog.getRemainingSecondsPrecise(sw, 180, 4500), 174.5);
+  const done = { running: false, startedAt: null, elapsedMs: 200000 }; // elapsed 200s
+  assert.equal(RobotLog.getRemainingSecondsPrecise(done, 180, 0), 0);   // clamp, no negative
 });
 
 test('formatMatchTime formats seconds as mm.ss.cs, zero-padded', () => {
