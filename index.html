@@ -732,6 +732,17 @@
 
         <div class="rt-field">
         <div class="stat-row">
+          <span class="label">Waktu ambil kfs</span>
+          <span class="time-value" id="rt-r1-ambilkfs-value">00:00:00</span>
+          <button id="rt-r1-ambilkfs-catat">Mulai</button>
+        </div>
+        <div class="stat-row">
+          <input type="number" id="rt-r1-ambilkfs-manual" placeholder="edit manual (detik)">
+        </div>
+        </div>
+
+        <div class="rt-field">
+        <div class="stat-row">
           <span class="label">Masuk forest</span>
           <span class="time-value" id="rt-r1-masukforest-value">0 : 0</span>
           <button id="rt-r1-masukforest-catat">Catat masuk forest</button>
@@ -1063,6 +1074,7 @@
       document.getElementById('rt-r1-storagespear-value').textContent = r1.storageSpear;
       document.getElementById('rt-r1-storagekfs-value').textContent = r1.storageKfs;
       document.getElementById('rt-r1-masukarena-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuMasukArena);
+      document.getElementById('rt-r1-ambilkfs-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuAmbilKfs);
       document.getElementById('rt-r1-masukforest-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuMasukForest);
       document.getElementById('rt-r1-forestarena-value').textContent = RobotLog.formatMenitDetikMs(r1.waktuForestArena);
       document.getElementById('rt-r1-urutan-value').textContent = RobotLog.formatSequence(r1.urutanRak) || '-';
@@ -1200,6 +1212,7 @@
       rtState.runTimer = RobotLog.resetStopwatch();
       rtState.laps = [];
       angkatR2Start = null;
+      resetRtMarks();
       renderRt();
     });
     document.getElementById('rt-lap').addEventListener('click', function () {
@@ -1246,6 +1259,7 @@
       if (!confirm('Reset semua data Running Test (termasuk Persentase KFM)? Tindakan ini tidak bisa dibatalkan.')) return;
       rtState = RobotLog.createRunningTestState();
       angkatR2Start = null;
+      resetRtMarks();
       populateRtInputs();
       renderRt();
     });
@@ -1275,15 +1289,41 @@
       }).join('');
     }
 
+    // Semua pencatatan waktu pakai sistem mulai/selesai (delta), bukan ambil elapsed stopwatch.
+    // rtMarkStart[prefix] = detik saat "Mulai"; null = belum mulai. Selesai -> nilai = now - start.
+    var rtMarkStart = {};
+    var rtMarkPrefixes = [];
+
+    function resetRtMarks() {
+      rtMarkStart = {};
+      rtMarkPrefixes.forEach(function (p) {
+        var b = document.getElementById(p + '-catat');
+        if (b) b.textContent = 'Mulai';
+      });
+    }
+
     function wireRtMark(prefix, robotKey, field) {
-      document.getElementById(prefix + '-catat').addEventListener('click', function () {
-        rtState.run[robotKey][field] = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
-        renderRt();
+      rtMarkPrefixes.push(prefix);
+      var btn = document.getElementById(prefix + '-catat');
+      btn.textContent = 'Mulai';
+      btn.addEventListener('click', function () {
+        var now = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
+        if (rtMarkStart[prefix] == null) {
+          rtMarkStart[prefix] = now;
+          btn.textContent = 'Selesai';
+        } else {
+          rtState.run[robotKey][field] = Math.max(0, now - rtMarkStart[prefix]);
+          rtMarkStart[prefix] = null;
+          btn.textContent = 'Mulai';
+          renderRt();
+        }
       });
       document.getElementById(prefix + '-manual').addEventListener('change', function (e) {
         var seconds = RobotLog.sanitizeManualSeconds(parseFloat(e.target.value));
         if (seconds === null) return;
         rtState.run[robotKey][field] = seconds;
+        rtMarkStart[prefix] = null;
+        btn.textContent = 'Mulai';
         e.target.value = '';
         renderRt();
       });
@@ -1360,6 +1400,7 @@
     wireRtCounter('rt-r1-storagekfs', 'r1', 'storageKfs');
     wireRtMark('rt-r1-masukarena', 'r1', 'waktuMasukArena');
     wireRtText('rt-r1-kesusahan', 'r1', 'kesusahanIndex');
+    wireRtMark('rt-r1-ambilkfs', 'r1', 'waktuAmbilKfs');
     document.getElementById('rt-r1-masukforest-catat').addEventListener('click', function () {
       rtState.run.r1.waktuMasukForest = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
       renderRt();

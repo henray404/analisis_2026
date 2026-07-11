@@ -405,7 +405,7 @@ test('createRunningTestState returns the expected shape', () => {
       r1: {
         staf: { terambil: 0, total: 0 }, waktuStaf: 0, waktuAssembly: 0,
         storageSpear: 0, storageKfs: 0, waktuMasukArena: 0, kesusahanIndex: '',
-        waktuMasukForest: 0, waktuForestArena: 0, urutanRak: [],
+        waktuAmbilKfs: 0, waktuMasukForest: 0, waktuForestArena: 0, urutanRak: [],
         waktuTaruhRak: 0, waktuRetryZona3: 0,
         tusukRow: '', deltaAngkatR2: 0
       },
@@ -467,6 +467,7 @@ test('formatRunningTestEntry produces the exact template with real values substi
     'storage kfs: 3 kotak',
     'waktu masuk arena: 00:20:00',
     'kesusahan ambil kfs di index: 3 dan 4',
+    'waktu ambil kfs: 00:00:00',
     '',
     'waktu perjalanan forest-arena: 00:15:00',
     'urutan taruh kfs di rak: tengah, kanan, kiri',
