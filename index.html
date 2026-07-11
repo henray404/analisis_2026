@@ -1009,20 +1009,26 @@
       if (active && active.tagName === 'SELECT' && active.closest('.kfs-grid')) return;
       if (Date.now() - kfsLastPushedAt < 2000) return;
 
-      // Ikutkan semua cell peluang biar sekalian kebaca (dua arah).
+      // Ikutkan semua cell peluang + slot flag arena biar sekalian kebaca.
       var pel = peluangCellMap();
       var pelCells = [];
       pel.forEach(function (m) { pelCells.push(m.berhasil, m.total); });
 
+      var slotMap = flagSlotCells();
+      var slotCells = [];
+      if (slotMap) Object.keys(slotMap).forEach(function (k) { slotMap[k].forEach(function (c) { slotCells.push(c); }); });
+
+      var allCells = pelCells.concat(slotCells);
       var url = CONFIG.RT_SHEET_WEBHOOK_URL + '?type=kfs-sync&tim=' + encodeURIComponent(tabName())
         + '&match=' + kfsMatchNo()
-        + (pelCells.length ? '&peluang=' + encodeURIComponent(pelCells.join(',')) : '');
+        + (allCells.length ? '&peluang=' + encodeURIComponent(allCells.join(',')) : '');
       fetch(url)
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (!res || res.status !== 'ok') return;
           if (typeof res.matchCount === 'number') populateMatchDropdown(res.matchCount);
           applyPeluangFromSheet(res.peluangValues, pel);
+          applyFlagSlotsFromSheet(res.peluangValues, slotMap);
           if (!res.kfsSeringGrid) return;
           var incoming = JSON.stringify(res.kfsSeringGrid);
           var current = JSON.stringify(rtState.kfsSeringGrid);
@@ -1050,6 +1056,35 @@
         }
       });
       if (changed) { buildPeluangGrid(); saveDraft(); }
+    }
+
+    // Sel tiap slot flag arena (staff/head/assembly/masukMF/.../arena), digeser per match.
+    function flagSlotCells() {
+      var defs = matchDefs();
+      if (!defs || !parseInt(state.matchNomor, 10)) return null;
+      var delta = matchRowDelta();
+      var map = {};
+      Object.keys(FLAG_DEFS).forEach(function (kind) {
+        var ranges = defs[FLAG_DEFS[kind].defKey] || [];
+        map[kind] = ranges.map(function (r) { return RobotLog.shiftRange(r, delta); });
+      });
+      return map;
+    }
+
+    // Set slot terpakai = index slot kosong pertama (dari sheet), biar hint nunjukin yang kosong.
+    function applyFlagSlotsFromSheet(values, slotMap) {
+      if (!values || !slotMap) return;
+      var changed = false;
+      Object.keys(slotMap).forEach(function (kind) {
+        var cells = slotMap[kind];
+        var firstEmpty = cells.length;
+        for (var i = 0; i < cells.length; i++) {
+          var v = values[cells[i]];
+          if (v === undefined || v === null || String(v).trim() === '') { firstEmpty = i; break; }
+        }
+        if ((state.matchSlots[kind] || 0) !== firstEmpty) { state.matchSlots[kind] = firstEmpty; changed = true; }
+      });
+      if (changed) { updateMatchHints(); saveDraft(); }
     }
 
     setInterval(pollKfsFromSheet, 15000);
@@ -1610,6 +1645,7 @@
       var blocker = matchSendBlocker();
       if (blocker) { setMatchStatus(blocker); return; }
       if (!baseRange) { setMatchStatus(label + ': range belum diisi di config.js'); return; }
+      kfsLastPushedAt = Date.now();   // tunda poll bentar biar gak baca sheet sebelum write landing
       var range = RobotLog.shiftRange(baseRange, matchRowDelta());
       setMatchStatus('kirim ' + label + ' → ' + range + '…');
       fetch(CONFIG.RT_SHEET_WEBHOOK_URL, {
@@ -1677,13 +1713,16 @@
       var label = isRetry ? 'RETRY ' + teks : teks;
       var ranges = defs[f.defKey] || [];
       if (!ranges.length) { setMatchStatus(label + ': range belum diisi di config.js'); return; }
+      // used = slot kosong pertama (sinkron dari sheet). Penuh -> timpa slot terakhir + warning.
       var used = state.matchSlots[kind] || 0;
-      if (used >= ranges.length) { setMatchStatus(label + ': ' + ranges.length + ' slot penuh'); return; }
+      var full = used >= ranges.length;
+      var idx = full ? ranges.length - 1 : used;
+      if (full) { setMatchStatus('⚠ ' + label + ': ' + ranges.length + ' slot PENUH — nimpa slot terakhir'); label = label + ' ⚠PENUH'; }
 
       var ts = nowStamp();
       var elapsed = matchClockSeconds();
-      var range = ranges[used];
-      state.matchSlots[kind] = used + 1;
+      var range = ranges[idx];
+      if (!full) state.matchSlots[kind] = used + 1;
 
       var value;
       if (isRetry) {
