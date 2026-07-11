@@ -74,27 +74,27 @@ test('formatPksCell renders one entry as "ts\\ntype", empty cell as ""', () => {
   assert.equal(RobotLog.formatPksCell({ ts: '0:05.10', type: 'MUKUL' }), '0:05.10\nMUKUL');
 });
 
-test('pksPoints counts only KFS cells, 30/40/80 per grid row', () => {
+test('pksPoints counts only KFS cells, 80/40/30 per grid row', () => {
   const empty = RobotLog.createPksLog();
   assert.equal(RobotLog.pksPoints(empty), 0);
 
   const kfs = (pks, i) => RobotLog.setPksEntry(pks, i, { ts: '0:01.00', type: 'KFS' });
-  assert.equal(RobotLog.pksPoints(kfs(empty, 0)), 30);   // baris atas
-  assert.equal(RobotLog.pksPoints(kfs(empty, 2)), 30);
+  assert.equal(RobotLog.pksPoints(kfs(empty, 0)), 80);   // baris atas
+  assert.equal(RobotLog.pksPoints(kfs(empty, 2)), 80);
   assert.equal(RobotLog.pksPoints(kfs(empty, 4)), 40);   // baris tengah
-  assert.equal(RobotLog.pksPoints(kfs(empty, 8)), 80);   // baris bawah
+  assert.equal(RobotLog.pksPoints(kfs(empty, 8)), 30);   // baris bawah
 
   // satu per baris = 150
   assert.equal(RobotLog.pksPoints(kfs(kfs(kfs(empty, 1), 5), 6)), 150);
 
-  // semua 9 cell KFS = 3*(30+40+80)
+  // semua 9 cell KFS = 3*(80+40+30)
   let all = empty;
   for (let i = 0; i < 9; i++) all = kfs(all, i);
   assert.equal(RobotLog.pksPoints(all), 450);
 
   // overwrite KFS -> MUKUL: poinnya ilang lagi
   const one = kfs(empty, 8);
-  assert.equal(RobotLog.pksPoints(one), 80);
+  assert.equal(RobotLog.pksPoints(one), 30);
   const flipped = RobotLog.setPksEntry(one, 8, { ts: '0:02.00', type: 'MUKUL' });
   assert.equal(RobotLog.pksPoints(flipped), 0);
 });

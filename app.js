@@ -55,7 +55,7 @@
 
   // --- Match slot / PKS logging (format mengikuti template spreadsheet) ---
   // Poin naruh KFS per baris grid: atas 30, tengah 40, bawah 80.
-  var PKS_ROW_POINTS = [30, 40, 80];
+  var PKS_ROW_POINTS = [80, 40, 30];
 
   // Grid 3x3. Tiap cell isinya satu entry {ts, type} atau null (kosong).
   function createPksLog() {
