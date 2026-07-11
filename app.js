@@ -265,8 +265,9 @@
     return m + ' : ' + s;
   }
 
-  // mm:ss:cc — centidetik, dipotong bukan dibulatin.
+  // mm:ss:cc — centidetik, dipotong bukan dibulatin. Non-angka -> 0 (hindari NaN).
   function formatMenitDetikMs(totalSeconds) {
+    totalSeconds = Number(totalSeconds) || 0;
     var totalWhole = Math.floor(totalSeconds);
     var cs = Math.floor(totalSeconds * 100) % 100;
     var m = Math.floor(totalWhole / 60);
