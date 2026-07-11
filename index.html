@@ -1898,9 +1898,12 @@
         .addEventListener('click', function () { pressFlag(kind, true); });
     });
 
-    // AMBIL KFS (R1/R2) -> poin arena 2 +10 tiap pencet.
-    ['btn-ambilkfs-r1', 'btn-ambilkfs-r2'].forEach(function (id) {
-      document.getElementById(id).addEventListener('click', function () { addArenaPoin('arena2', 10); });
+    // AMBIL KFS -> catat waktu ke slot MASUK MF (tempat sama) + poin arena 2 +10.
+    document.getElementById('btn-ambilkfs-r1').addEventListener('click', function () {
+      pressFlag('masukmf', false); addArenaPoin('arena2', 10);
+    });
+    document.getElementById('btn-ambilkfs-r2').addEventListener('click', function () {
+      pressFlag('masukmfr2', false); addArenaPoin('arena2', 10);
     });
 
     document.getElementById('match-timer-toggle').addEventListener('click', function () {
