@@ -552,6 +552,7 @@
         <button class="flag" id="btn-masukmf">MASUK MF R1<span class="slot-hint" id="hint-masukmf"></span></button>
         <button class="flag retry" id="btn-retry-masukmf" title="Retry MASUK MF R1">↻ RETRY</button>
       </span>
+      <button class="flag" id="btn-ambilkfs-r1">AMBIL KFS R1 (+10)</button>
     </div>
     <div class="arena-col r2">
       <div class="arena-col-head">R2</div>
@@ -559,6 +560,7 @@
         <button class="flag" id="btn-masukmf-r2">MASUK MF R2<span class="slot-hint" id="hint-masukmfr2"></span></button>
         <button class="flag retry" id="btn-retry-masukmf-r2" title="Retry MASUK MF R2">↻ RETRY</button>
       </span>
+      <button class="flag" id="btn-ambilkfs-r2">AMBIL KFS R2 (+10)</button>
     </div>
   </div>
 
@@ -1658,7 +1660,7 @@
     var FLAG_DEFS = {
       staff:     { defKey: 'staff',     label: 'STAFF R1',          robot: 'r1', copy: function (s, e) { s.r1.tongkat = e; } },
       head:      { defKey: 'head',      label: 'HEAD R2',           robot: 'r2', copy: function (s, e) { s.r2.spearhead = e; } },
-      assembly:  { defKey: 'assembly',  label: 'ASSEMBLY SPEARHEAD', robot: 'r1', copy: function (s, e) { s.r1.assembly = e; } },
+      assembly:  { defKey: 'assembly',  label: 'ASSEMBLY SPEARHEAD', robot: 'r1', arenaPoin: 'arena1', copy: function (s, e) { s.r1.assembly = e; } },
       masukmf:   { defKey: 'masukMF',   label: 'MASUK MF R1',       robot: 'r1', copy: function (s, e) { s.berkeliaranMF = e; } },
       masukmfr2: { defKey: 'masukMFR2', label: 'MASUK MF R2',       robot: 'r2' },
       arena:     { defKey: 'arena',     label: 'MASUK ARENA 3 R1',  robot: 'r1', timeOnly: true, copy: function (s, e) { s.r1.masukArena = e; } },
@@ -1689,10 +1691,24 @@
       } else {
         if (f.copy) f.copy(state, elapsed);
         value = f.timeOnly ? ts : ts + '\n' + f.label;
+        if (f.arenaPoin) addArenaPoin(f.arenaPoin, 10);   // assembly -> arena 1 +10 (retry gak)
       }
 
       render();
       sendMatchRange(range, value, label);
+    }
+
+    // Nambah poin arena dari button + update input + push ke sheet. arenaKey: 'arena1'/'arena2'.
+    var ARENA_POIN_DEF = { arena1: ['poinArena1', 'poin-arena1', 'Poin Arena 1'], arena2: ['poinArena2', 'poin-arena2', 'Poin Arena 2'] };
+    function addArenaPoin(arenaKey, delta) {
+      state.poin[arenaKey] = (state.poin[arenaKey] || 0) + delta;
+      var d = ARENA_POIN_DEF[arenaKey];
+      if (d) {
+        document.getElementById(d[1]).value = state.poin[arenaKey];
+        var defs = matchDefs();
+        if (defs) sendMatchRange(defs[d[0]], state.poin[arenaKey], d[2]);
+      }
+      saveDraft();
     }
 
     // Satu cell = satu nilai. Pencet tipe lain -> ditimpa. Pencet tipe yang lagi
@@ -1880,6 +1896,11 @@
       document.getElementById(id).addEventListener('click', function () { pressFlag(kind, false); });
       document.getElementById(id.replace('btn-', 'btn-retry-'))
         .addEventListener('click', function () { pressFlag(kind, true); });
+    });
+
+    // AMBIL KFS (R1/R2) -> poin arena 2 +10 tiap pencet.
+    ['btn-ambilkfs-r1', 'btn-ambilkfs-r2'].forEach(function (id) {
+      document.getElementById(id).addEventListener('click', function () { addArenaPoin('arena2', 10); });
     });
 
     document.getElementById('match-timer-toggle').addEventListener('click', function () {
