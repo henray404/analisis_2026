@@ -1976,7 +1976,18 @@
 
     function tickLoop() {
       document.getElementById('match-timer-value').textContent = RobotLog.formatMatchTime(RobotLog.getElapsedSecondsPrecise(state.matchTimer, Date.now()));
-      document.getElementById('rt-run-timer-value').textContent = RobotLog.formatMatchTime(RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now()));
+      var rtNow = RobotLog.getElapsedSecondsPrecise(rtState.runTimer, Date.now());
+      document.getElementById('rt-run-timer-value').textContent = RobotLog.formatMatchTime(rtNow);
+      // Field yang lagi "Mulai" (belum Selesai): tampilkan waktu jalan biar keliatan gerak.
+      rtMarkPrefixes.forEach(function (p) {
+        if (rtMarkStart[p] != null) {
+          var el = document.getElementById(p + '-value');
+          if (el) el.textContent = RobotLog.formatMenitDetikMs(Math.max(0, rtNow - rtMarkStart[p]));
+        }
+      });
+      if (angkatR2Start != null) {
+        document.getElementById('rt-r1-angkatr2-value').textContent = RobotLog.formatMenitDetikMs(Math.max(0, rtNow - angkatR2Start));
+      }
       requestAnimationFrame(tickLoop);
     }
 
